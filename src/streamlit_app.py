@@ -1,40 +1,69 @@
-import altair as alt
-import numpy as np
-import pandas as pd
 import streamlit as st
+import requests
+import json
 
-"""
-# Welcome to Streamlit!
+# Your unique Webhook URL from n8n
+N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"] 
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+user_query = st.chat_input("Enter your real estate search criteria...")
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+if user_query:
+    st.chat_message("user").write(user_query)
+    
+    try:
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+        with st.spinner("Generating your search URL..."):
+            payload = {"search_query_message": user_query}
+            try:
+                response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=30)
+                response.raise_for_status()
+                results_data = response.json()
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+                # Assume results_data has {'search_url': ...}
+                search_url = results_data.get("search_url", "URL not found")
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+            except Exception as e:
+                st.chat_message("assistant").write(f"Error fetching URL: {e}")
+                search_url = None
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
+        if search_url:
+            # Display URL nicely
+            st.chat_message("assistant").write("Your scrape started at this URL:")
+            st.chat_message("assistant").text_area("Search URL", value=search_url, height=50)
+            st.chat_message("assistant").write("Is this the final URL you want? If not, please modify the filters.")
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+            # Initialize state
+            if "confirmed" not in st.session_state:
+                st.session_state.confirmed = None
+            if "final_url" not in st.session_state:
+                st.session_state.final_url = None
+            
+           # Two buttons for confirmation
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Yes, it's final"):
+                    st.session_state.confirmed = True
+                    st.session_state.final_url = search_url
+
+            with col2:
+                if st.button("No, I'll modify it"):
+                    st.session_state.confirmed = False
+
+            # Handle logic after button click
+            if st.session_state.confirmed is True:
+                st.chat_message("assistant").write(f"Great! Scraping will start for:\n{st.session_state.final_url}")
+
+            elif st.session_state.confirmed is False:
+                # Let user enter modified URL
+                final_url_input = st.chat_input("Please enter your final URL:")
+                if final_url_input:
+                    st.session_state.final_url = final_url_input
+                    st.chat_message("user").write(final_url_input)
+                    st.chat_message("assistant").write(f"Final URL updated to:\n{st.session_state.final_url}")
+
+
+    except requests.exceptions.Timeout:
+        st.chat_message("assistant").error("The request timed out. The scraping process may be taking too long.")
+    except Exception as e:
+        st.chat_message("assistant").error(f"Error Occured: {e}")
+        
