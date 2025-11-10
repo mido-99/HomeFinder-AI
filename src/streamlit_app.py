@@ -3,8 +3,8 @@ import requests
 import json
 
 # Your unique Webhook URL from n8n
-# N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"] 
-N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"] 
+N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"] 
+# N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"] 
 
 # UI
 st.title("🏠 Zillow Homes Finder")
@@ -57,8 +57,12 @@ if last_user_msg and last_user_msg != st.session_state.get("last_query_sent", ""
                 st.session_state.chat_history.append({"role": "assistant", "message": error_message})
             elif search_url:
                 # Display URL nicely
-                st.session_state.chat_history.append({"role": "assistant", "message": "Your scrape started at this URL:"})
-                st.session_state.chat_history.append({"role": "assistant", "message": search_url})
+                st.session_state.chat_history.append(
+                    {"role": "assistant", "message": f"🔗 Is this your [Search URL]({search_url})?\n\n"
+                     "If not, You can modify the filters then copy & paste the final URL here. "
+                     "Or simply reply with 'yes' to this!"
+                    }
+                )
 
             # Mark as processed
             st.session_state.last_query_sent = last_user_msg
