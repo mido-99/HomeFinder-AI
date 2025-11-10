@@ -3,9 +3,21 @@ import requests
 import json
 
 # Your unique Webhook URL from n8n
-N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"] 
+# N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"] 
+N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"] 
 
-user_query = st.chat_input("Enter your real estate search criteria...")
+# UI
+st.title("🏠 Zillow Search Assistant")
+st.write("*What kind of home you’re looking for?*")
+
+# Initialize chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+if "last_query_sent" not in st.session_state:
+    st.session_state.last_query_sent = ""
+
+# Capture new user input
+user_query = st.chat_input("e.g.: Multi family homes in NY with 2 baths & 3 bedroom...")
 
 if user_query:
     st.chat_message("user").write(user_query)
