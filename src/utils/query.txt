@@ -1,0 +1,1 @@
+{'query': 'los angelos park view with 3 to 5 beds', 'queryOptions': '', 'resultType': ['REGIONS', 'FORSALE', 'RENTALS', 'SOLD', 'COMMUNITIES', 'SCHOOLS', 'SCHOOL_DISTRICTS', 'SEMANTIC_REGIONS'], 'shouldRequestSpellCorrectedMetadata': 'true', 'querySource': 'MANUAL', 'operationName': 'GetQueryUnderstandingResults'}

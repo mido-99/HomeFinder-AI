@@ -1,0 +1,16 @@
+{
+  "accept": "*/*",
+  "accept-language": "en-US,en;q=0.9,ar;q=0.8",
+  "content-type": "application/json",
+  "origin": "https://www.zillow.com",
+  "priority": "u=1, i",
+  "sec-ch-ua": "\"Google Chrome\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": "\"Windows\"",
+  "sec-fetch-dest": "empty",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-site": "same-origin",
+  "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+  "x-caller-id": "static-search-page-graphql",
+  "cookie": "AWSALB=yjTkh28k+YkRlzsX7gjrsDLN7VKLaEuxZOeyLG89f0o54crjB5wWf3T9Ro28TopKEa4x3Ul0fVwqqdvrZtOCodvFykOEmFVx3d8In+jIkIDdkRIDZ/At1M0IR9mf; AWSALBCORS=yjTkh28k+YkRlzsX7gjrsDLN7VKLaEuxZOeyLG89f0o54crjB5wWf3T9Ro28TopKEa4x3Ul0fVwqqdvrZtOCodvFykOEmFVx3d8In+jIkIDdkRIDZ/At1M0IR9mf; DoubleClickSession=True; FSsampler=jsnull; JSESSIONID=B4004814682DEDDC5D1CB8B34A681944; _ScCbts=%5B%5D; __eoi=jsnull; __gads=jsnull; __gpi=jsnull; _clck=mi4lw0%5E2%5Eg09%5E0%5E2117; _clsk=160nft8%5E1760763290116%5E1%5E0%5Eo.clarity.ms%2Fcollect; _dd_s=rum=0&expire=1760764204368; _fbp=fb.1.1760763288590.512569726196110880; _ga=GA1.2.738822005.1760763284; _gcl_au=1.1.1240339908.1760763287; _gid=GA1.2.1398212199.1760763284; _pin_unauth=dWlkPVl6UTFOekptWVdZdFl6UTFPUzAwWXpWaUxXRXdNRE10Wm1Vd05XUTBOekEyWVRFeQ; _px3=dde4a5af42672bbb2301c5dfa6939fe2eab10ae5c4081f3c02157ab4cb7393a1:W1YwVsCMTFrTezpGHISWEAPSex1xccm+/QUSTrCJVODcpguYmB9iduXVEjlZV8OnVCtZ+5BgU7N7WpTg5YUosg==:1000:Sg1XxNo1TbeOUHKO5+1zJh6RKxypXDI/eLIVyV7WRhYx4UvnHFLH25V0IjB7XrUiBMN6+xp5OSgH1zuar3J8VB9PKIxXO0n2PFbk+IlZyEWP0WZ2fzXGUjT97V+kXF6TnMLDI+omoMnjMkXnff0VDyWbstCPTQVQshUCKVXndb/zt6yky049X/FzFSBIp86qJMl+WJ0hmjoQRuIbXkSinsObugA+hQc2ixpSZuRASfA=; _pxvid=90ebcbe3-abde-11f0-a5b4-dc4a796bca9e; _rdt_uuid=1760763288884.7e3bf483-5699-42cd-9b11-2f8220eeb535; _scid=rWhHtVsHigaXkbdSWTmL3aR9AzZd4Glk; _scid_r=rWhHtVsHigaXkbdSWTmL3aR9AzZd4Glk; _sctr=1%7C1760734800000; _tt_enable_cookie=1; _ttp=01K7TTQ752JVXBTXB88MPR1GQ8_.tt.1; _uetsid=933c32f0abde11f0af8b4778c69c78ae; _uetvid=933c7330abde11f097860768d04d626c; datagrail_consent_id=7e84c9ce-057e-4c91-87ef-56e6d4914637.29fe6475-db32-423e-8972-0adf38035d9b; datagrail_consent_id_s=7e84c9ce-057e-4c91-87ef-56e6d4914637.89d10b06-8da1-40c7-a53c-b6433982a7fb; g_state={"i_l":0,"i_ll":1760763285340,"i_b":"+DYhXigkFnCDxpzfO4XxJBzN7Ve3sogEXdAI8VzXDfk"}; optimizelyEndUserId=jsnull; optimizelySession=jsnull; pxcts=90ebd430-abde-11f0-a5b5-feb3f22ec306; search=jsnull; tfpsi=24d7f431-4de8-4c2c-861c-49e999865d9b; ttcsid=1760763288748::SHfkCI0o0gLfBbDSJl6M.1.1760763303375.0; ttcsid_CN5P33RC77UF9CBTPH9G=1760763288747::uPEuDLMjXKuUVph-ohgp.1.1760763303375.0; web-platform-data=%7B%22wp-dd-rum-session%22%3A%7B%22doNotTrack%22%3Atrue%7D%7D; zg_anonymous_id=%22f307970d-3b80-4200-938b-44a5768a2580%22; zgcus_aeut=jsnull; zgcus_aeuut=jsnull; zgsession=1|d267a5b9-0a18-4a40-84db-1807a56ea7e5; zguid=24|%24409ffa8a-48c7-4475-be6e-5ad0fcff5ec6; zjs_anonymous_id=%22409ffa8a-48c7-4475-be6e-5ad0fcff5ec6%22; zjs_user_id_type=%22encoded_zuid%22"
+}
