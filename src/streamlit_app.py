@@ -64,48 +64,17 @@ if last_user_msg and last_user_msg != st.session_state.get("last_query_sent", ""
             # Mark as processed
             st.session_state.last_query_sent = last_user_msg
 
-            except Exception as e:
-                st.chat_message("assistant").write(f"Error fetching URL: {e}")
-                search_url = None
+        except Exception as e:
+            st.session_state.chat_history.append({"role": "assistant", "message": f"Error: {e}"})
 
-        if search_url:
-            # Display URL nicely
-            st.chat_message("assistant").write("Your scrape started at this URL:")
-            st.chat_message("assistant").text_area("Search URL", value=search_url, height=50)
-            st.chat_message("assistant").write("Is this the final URL you want? If not, please modify the filters.")
-
-            # Initialize state
-            if "confirmed" not in st.session_state:
-                st.session_state.confirmed = None
-            if "final_url" not in st.session_state:
-                st.session_state.final_url = None
-            
-           # Two buttons for confirmation
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("Yes, it's final"):
-                    st.session_state.confirmed = True
-                    st.session_state.final_url = search_url
-
-            with col2:
-                if st.button("No, I'll modify it"):
-                    st.session_state.confirmed = False
-
-            # Handle logic after button click
-            if st.session_state.confirmed is True:
-                st.chat_message("assistant").write(f"Great! Scraping will start for:\n{st.session_state.final_url}")
-
-            elif st.session_state.confirmed is False:
-                # Let user enter modified URL
-                final_url_input = st.chat_input("Please enter your final URL:")
-                if final_url_input:
-                    st.session_state.final_url = final_url_input
-                    st.chat_message("user").write(final_url_input)
-                    st.chat_message("assistant").write(f"Final URL updated to:\n{st.session_state.final_url}")
-
-
-    except requests.exceptions.Timeout:
-        st.chat_message("assistant").error("The request timed out. The scraping process may be taking too long.")
-    except Exception as e:
-        st.chat_message("assistant").error(f"Error Occured: {e}")
-        
+# Display the last message
+last_assist_msg = next(
+    (
+        msg["message"]
+        for msg in reversed(st.session_state.chat_history)
+        if msg['role'] == 'assistant'
+    ),
+    None,
+)
+if last_assist_msg:
+    st.chat_message("assistant").write(last_assist_msg)
