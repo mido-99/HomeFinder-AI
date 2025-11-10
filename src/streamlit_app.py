@@ -7,7 +7,7 @@ import json
 N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"] 
 
 # UI
-st.title("🏠 Zillow Search Assistant")
+st.title("🏠 Zillow Homes Finder")
 st.write("*What kind of home you’re looking for?*")
 
 # Initialize chat history
@@ -15,6 +15,8 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "last_query_sent" not in st.session_state:
     st.session_state.last_query_sent = ""
+if "last_msg_index" not in st.session_state:
+    st.session_state.last_msg_index = 0
 
 # Capture new user input
 user_query = st.chat_input("e.g.: Multi family homes in NY with 2 baths & 3 bedroom...")
@@ -23,12 +25,9 @@ if user_query:
     # Append user message
     st.session_state.chat_history.append({"role": "user", "message": user_query})
 
-# Render full chat history first
+# Render full chat history once without touching last_msg_index
 for msg in st.session_state.chat_history:
-    if msg["role"] == "user":
-        st.chat_message("user").write(msg["message"])
-    else:
-        st.chat_message("assistant").write(msg["message"])
+    st.chat_message(msg['role']).write(msg['message'])
 
 # Get last message
 last_user_msg = next(
@@ -66,15 +65,10 @@ if last_user_msg and last_user_msg != st.session_state.get("last_query_sent", ""
 
         except Exception as e:
             st.session_state.chat_history.append({"role": "assistant", "message": f"Error: {e}"})
-
-# Display the last message
-last_assist_msg = next(
-    (
-        msg["message"]
-        for msg in reversed(st.session_state.chat_history)
-        if msg['role'] == 'assistant'
-    ),
-    None,
-)
-if last_assist_msg:
-    st.chat_message("assistant").write(last_assist_msg)
+    
+# Display most recent messages
+recent_msgs = st.session_state.chat_history[st.session_state.last_msg_index +1 :]
+for msg in recent_msgs:
+    st.chat_message(msg['role']).write(msg['message'])
+# Reset index
+st.session_state.last_msg_index = len(st.session_state.chat_history)
