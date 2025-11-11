@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import json
 import time
-
+import uuid
 
 # Constants
 # N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
@@ -22,6 +22,7 @@ def init_session_state():
         "last_query_sent": "",
         "last_msg_index": 0,
         "last_request_time": 0,
+        "session_id": str(uuid.uuid4()),
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -76,7 +77,8 @@ def send_request_to_n8n(user_message: str):
     """Send user's message to the n8n webhook and process the response."""
     with st.spinner("Generating your search URL..."):
         try:
-            payload = {"search_query_message": user_message}
+            session_id = st.session_state.session_id
+            payload = {"search_query_message": user_message, 'session_id': session_id}
             response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=30)
             response.raise_for_status()
 
