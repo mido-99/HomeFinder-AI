@@ -7,7 +7,7 @@ import time
 # Constants
 # N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
 N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"]
-REQUEST_LIMIT_SECONDS = 10
+REQUEST_LIMIT_SECONDS = 30
 
 
 # ---------- UI SETUP ----------
@@ -53,6 +53,24 @@ def append_message(role: str, message: str):
     """Add a message to the chat history."""
     st.session_state.chat_history.append({"role": role, "message": message})
 
+def user_sends_too_often():
+    """Add a delay between messages to avoid rate limits by AI"""
+    # Calculate time since last message
+    current_time = time.time()
+    time_since_last_request = round(current_time - st.session_state.last_request_time)
+    
+    if time_since_last_request < REQUEST_LIMIT_SECONDS:
+        # remaining time in sec before user can send another message & handled by AI
+        remaining_time = REQUEST_LIMIT_SECONDS - time_since_last_request
+        # Block the request and show an error
+        st.warning(f"Please wait **{remaining_time} seconds** before sending another request.")
+        return True
+    else:
+        # Cooldown passed. Update the timestamp BEFORE sending the request.
+        st.session_state.last_request_time = current_time
+        return False
+
+    
 # ---------- CALLBACK ----------
 def send_request_to_n8n(user_message: str):
     """Send user's message to the n8n webhook and process the response."""
@@ -101,7 +119,7 @@ def main():
     last_msg = get_last_user_message()
 
     # Send only if new message and not repeated
-    if last_msg and last_msg != st.session_state.last_query_sent:
+    if last_msg and last_msg != st.session_state.last_query_sent and not user_sends_too_often():
         send_request_to_n8n(last_msg)
 
     # Show latest messages after processing
