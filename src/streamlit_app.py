@@ -7,7 +7,7 @@ import uuid
 # Constants
 # N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
 N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"]
-REQUEST_LIMIT_SECONDS = 30
+REQUEST_LIMIT_SECONDS = 10
 
 
 # ---------- UI SETUP ----------
@@ -123,10 +123,19 @@ def main():
     # Send only if new message and not repeated
     if last_msg and last_msg != st.session_state.last_query_sent and not user_sends_too_often():
         send_request_to_n8n(last_msg)
+        # Show latest messages after processing
+        render_recent_messages()
 
-    # Show latest messages after processing
-    render_recent_messages()
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            yes = st.button("✅ Yes, Start Scrape", use_container_width=True)
+            no = st.button("❌ No, Modify Filters", use_container_width=True)
+        if yes:
+            append_message('ai', '🔍 Great! Searching homes for you...')
+        elif no:
+            append_message('assistant', 'Could you please input your URL then?')
 
+        render_recent_messages()
 
 if __name__ == "__main__":
     main()
