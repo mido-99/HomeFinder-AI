@@ -7,7 +7,7 @@ import uuid
 # Constants
 # N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
 N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"]
-REQUEST_LIMIT_SECONDS = 10
+REQUEST_LIMIT_SECONDS = 5
 
 
 # ---------- UI SETUP ----------
@@ -23,6 +23,8 @@ def init_session_state():
         "last_msg_index": 0,
         "last_request_time": 0,
         "session_id": str(uuid.uuid4()),
+        "chatting_to_get_url": True,
+        "final_url": '',
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -34,12 +36,11 @@ def render_chat():
     for msg in st.session_state.chat_history:
         st.chat_message(msg["role"]).write(msg["message"])
 
-def render_recent_messages():
-    """Render only new messages since last index."""
-    new_msgs = st.session_state.chat_history[st.session_state.last_msg_index + 1 :]
-    for msg in new_msgs:
-        st.chat_message(msg["role"]).write(msg["message"])
-    st.session_state.last_msg_index = len(st.session_state.chat_history)
+def render_message(role: str, message: str):
+    """Add a message to the chat history."""
+    st.session_state.chat_history.append({"role": role, "message": message})
+    st.session_state.last_msg_index += 1
+    st.chat_message(role).write(message)
 
 # ---------- GETTERS ----------
 def get_last_user_message():  # sourcery skip: use-next
@@ -50,10 +51,6 @@ def get_last_user_message():  # sourcery skip: use-next
     return None
 
 # ---------- HELPER ----------
-def append_message(role: str, message: str):
-    """Add a message to the chat history."""
-    st.session_state.chat_history.append({"role": role, "message": message})
-
 def user_sends_too_often():
     """Add a delay between messages to avoid rate limits by AI"""
     # Calculate time since last message
@@ -71,7 +68,6 @@ def user_sends_too_often():
         st.session_state.last_request_time = current_time
         return False
 
-    
 # ---------- CALLBACK ----------
 def send_request_to_n8n(user_message: str):
     """Send user's message to the n8n webhook and process the response."""
@@ -87,9 +83,9 @@ def send_request_to_n8n(user_message: str):
             error = data.get("error_message")
 
             if error:
-                append_message("assistant", error)
+                render_message("assistant", error)
             elif search_url:
-                append_message(
+                render_message(
                     "assistant",
                     f"🔗 Is this your [Search URL]({search_url})?\n\n"
                     "If not, modify the filters and paste the final URL here.\n"
@@ -101,7 +97,8 @@ def send_request_to_n8n(user_message: str):
             st.session_state.last_request_time = time.time()
 
         except Exception as e:
-            append_message("assistant", f"Error: {e}")
+            render_message("assistant", f"Error: {e}")
+
 
 
 # ---------- MAIN CHAT FLOW ----------
