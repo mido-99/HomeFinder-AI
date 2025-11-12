@@ -101,38 +101,43 @@ def send_request_to_n8n(user_message: str):
 
 
 
-# ---------- MAIN CHAT FLOW ----------
-def main():
-    setup_ui()
-    init_session_state()
-
-    # Handle new message input
-    user_query = st.chat_input("e.g.: Multi family homes in NY with 2 baths & 3 bedroom...")
-
-    if user_query:
-        append_message("user", user_query)
+# ---------- CHAT MODES ----------
+def chat_to_get_url():
+    """Chatbot interacts with user until we get the final search URL"""
 
     # Always render full chat before processing new message
     render_chat()
+
+    # Handle new message input
+    user_query = st.chat_input("e.g.: Multi family homes in NY with 2 baths & 3 bedroom...")
+    if user_query:
+        render_message("user", user_query)
 
     last_msg = get_last_user_message()
 
     # Send only if new message and not repeated
     if last_msg and last_msg != st.session_state.last_query_sent and not user_sends_too_often():
         send_request_to_n8n(last_msg)
-        # Show latest messages after processing
-        render_recent_messages()
 
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            yes = st.button("✅ Yes, Start Scrape", use_container_width=True)
-            no = st.button("❌ No, Modify Filters", use_container_width=True)
-        if yes:
-            append_message('ai', '🔍 Great! Searching homes for you...')
-        elif no:
-            append_message('assistant', 'Could you please input your URL then?')
+def scraping():
+    """Render UI after scraping has started"""
+    render_chat()
 
-        render_recent_messages()
+    with st.spinner("### 🔍 Great! Searching homes for you..."):
+        st.write(f"Your Scrape started at [This Page]('https://example.com)")
+        time.sleep(4)
+
+# ---------- MAIN CHAT FLOW ----------
+def main():
+    setup_ui()
+    init_session_state()
+
+    if st.session_state.chatting_to_get_url:
+        chat_to_get_url()
+        return
+    
+    scraping()
+
 
 if __name__ == "__main__":
     main()
