@@ -19,7 +19,7 @@ def setup_ui():
 def init_session_state():
     defaults = {
         "chat_history": [],
-        "last_query_sent": "",
+        "last_query_sent": '',
         "last_msg_index": 0,
         "last_request_time": 0,
         "session_id": str(uuid.uuid4()),
@@ -95,10 +95,26 @@ def send_request_to_n8n(user_message: str):
             # mark as processed
             st.session_state.last_query_sent = user_message
             st.session_state.last_request_time = time.time()
+            
+            ask_user_confirmation()
 
         except Exception as e:
             render_message("assistant", f"Error: {e}")
 
+def ask_user_confirmation():
+    
+    def user_confirmed():
+        st.session_state.chatting_to_get_url = False
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        yes = st.button("✅ Yes, Start Scrape!", use_container_width=True, on_click=user_confirmed)
+        no = st.button("❌ No, Modify Filters", use_container_width=True)
+    return
+    if yes:
+        render_message('ai', '🔍 Great! Searching homes for you...')
+    elif no:
+        render_message('assistant', 'Could you please input your URL then?')
 
 
 # ---------- CHAT MODES ----------
