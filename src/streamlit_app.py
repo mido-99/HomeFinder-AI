@@ -10,8 +10,9 @@ N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"]
 REQUEST_LIMIT_SECONDS = 5
 
 
-# ---------- UI SETUP ----------
-def setup_ui():
+# ---------- SETUP UI ----------
+def chat_ui():
+    st.set_page_config(page_title="US Homes Finder", page_icon="🏠")
     st.title("🏠 Zillow Homes Finder")
     st.write("*What kind of home you’re looking for?*")
 
@@ -126,7 +127,7 @@ def ask_user_confirmation():
 # ---------- CHAT MODES ----------
 def chat_to_get_url():
     """Chatbot interacts with user until we get the final search URL"""
-
+    chat_ui()
     # Always render full chat before processing new message
     render_chat()
 
@@ -140,17 +141,18 @@ def chat_to_get_url():
     if last_msg and last_msg != st.session_state.last_query_sent and not user_sends_too_often():
         send_request_to_n8n(last_msg)
 
+
 def scraping():
+    chat_ui()
     """Render UI after scraping has started"""
     render_chat()
 
     with st.spinner("### 🔍 Great! Searching homes for you..."):
-        st.write(f"Your Scrape started at [This Page]('https://example.com)")
-        time.sleep(4)
+        st.write(f"Your Scrape started at [This Page]({st.session_state.final_url})")
 
 # ---------- MAIN CHAT FLOW ----------
 def main():
-    setup_ui()
+    
     init_session_state()
 
     if st.session_state.chatting_to_get_url:
