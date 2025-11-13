@@ -43,10 +43,16 @@ def render_message(role: str, message: str):
     st.chat_message(role).write(message)
 
 # ---------- GETTERS ----------
-def get_last_user_message():  # sourcery skip: use-next
-    """Return the most recent user message."""
+def get_last_message(role: Literal['ai', 'assistant', 'user'] = 'user'):  # sourcery skip: use-next
+    """Return the most recent message by role.
+    
+    Ex: to get last user message:
+    ```python
+    get_last_message('user')
+    ```
+    """
     for msg in reversed(st.session_state.chat_history):
-        if msg["role"] == "user":
+        if msg["role"] == role:
             return msg["message"]
     return None
 
@@ -129,8 +135,7 @@ def chat_to_get_url():
     if user_query:
         render_message("user", user_query)
 
-    last_msg = get_last_user_message()
-
+    last_msg = get_last_message("user")
     # Send only if new message and not repeated
     if last_msg and last_msg != st.session_state.last_query_sent and not user_sends_too_often():
         send_request_to_n8n(last_msg)
