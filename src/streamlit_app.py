@@ -80,6 +80,11 @@ def send_request_to_n8n(user_message: str):
     """Send user's message to the n8n webhook and process the response."""
     with st.spinner("Generating your search URL..."):
         try:
+            # mark as processed
+            st.session_state.last_query_sent = user_message
+            st.session_state.last_request_time = time.time()
+
+            # Sent to n8n
             session_id = st.session_state.session_id
             payload = {"search_query_message": user_message, 'session_id': session_id}
             response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=30)
@@ -91,7 +96,9 @@ def send_request_to_n8n(user_message: str):
 
             if error:
                 render_message("assistant", error)
+
             elif search_url:
+                st.session_state.final_url = search_url
                 render_message(
                     "assistant",
                     f"🔗 Is this your [Search URL]({search_url})?\n\n"
@@ -99,29 +106,8 @@ def send_request_to_n8n(user_message: str):
                     "Or simply reply with **yes** to confirm!",
                 )
 
-            # mark as processed
-            st.session_state.last_query_sent = user_message
-            st.session_state.last_request_time = time.time()
-            
-            ask_user_confirmation()
-
         except Exception as e:
             render_message("assistant", f"Error: {e}")
-
-def ask_user_confirmation():
-    
-    def user_confirmed():
-        st.session_state.chatting_to_get_url = False
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        yes = st.button("✅ Yes, Start Scrape!", use_container_width=True, on_click=user_confirmed)
-        no = st.button("❌ No, Modify Filters", use_container_width=True)
-    return
-    if yes:
-        render_message('ai', '🔍 Great! Searching homes for you...')
-    elif no:
-        render_message('assistant', 'Could you please input your URL then?')
 
 
 # ---------- CHAT MODES ----------
