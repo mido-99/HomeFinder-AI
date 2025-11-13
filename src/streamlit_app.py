@@ -1,8 +1,10 @@
+from typing import Literal
 import streamlit as st
 import requests
 import json
 import time
 import uuid
+import re
 
 # Constants
 # N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
@@ -24,8 +26,8 @@ def init_session_state():
         "last_msg_index": 0,
         "last_request_time": 0,
         "session_id": str(uuid.uuid4()),
-        "chatting_to_get_url": True,
         "final_url": '',
+        "current_mode": 'chatting_to_get_url',
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -141,7 +143,7 @@ def main():
     
     init_session_state()
 
-    if st.session_state.chatting_to_get_url:
+    if st.session_state.current_mode == 'chatting_to_get_url':
         chat_to_get_url()
         return
     
