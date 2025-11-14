@@ -6,6 +6,8 @@ import time
 import uuid
 import re
 
+from src.templates.messages import empty_area_msg
+
 # Constants
 # N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
 N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"]
@@ -15,7 +17,7 @@ REQUEST_LIMIT_SECONDS = 5
 # ---------- SETUP UI ----------
 def chat_ui():
     st.set_page_config(page_title="US Homes Finder", page_icon="🏠")
-    st.title("🏠 Zillow Homes Finder")
+    st.title("🏡 HomeFinder AI ")
     st.write("*What kind of home you’re looking for?*")
 
 # ---------- SESSION STATE INIT ----------
@@ -94,10 +96,17 @@ def send_request_to_n8n(user_message: str):
 
             data = response.json()
             search_url = data.get("search_url")
+            empty_area = data.get("empty_area")
             error = data.get("error_message")
 
             if error:
                 render_message("assistant", error)
+
+            elif empty_area:
+                render_message(
+                    "assistant",
+                    empty_area_msg(search_url)
+                )
 
             elif search_url:
                 st.session_state.final_url = search_url
