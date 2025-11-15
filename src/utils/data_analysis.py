@@ -2,6 +2,7 @@
 import re
 import pandas as pd
 import streamlit as st
+import altair as alt
 from collections import defaultdict
 
 
@@ -114,13 +115,38 @@ def summarize_by_city(data: list[dict]):
     return sorted(summary, key=lambda x: x["count"], reverse=True)
 
 def bed_bath_distribution(data: list[dict]):
+    
     beds = defaultdict(int)
     baths = defaultdict(int)
 
     for i in data:
-        if i["beds"]:
+        if i.get("beds"):
             beds[i["beds"]] += 1
-        if i["baths"]:
+        if i.get("baths"):
             baths[i["baths"]] += 1
 
     return dict(beds), dict(baths)
+
+def display_bed_bath_distribution(normalized_data):
+    
+    beds, baths = bed_bath_distribution(normalized_data)
+
+    # Convert to DataFrame
+    df_beds = pd.DataFrame(list(beds.items()), columns=["Beds", "Count"])
+    df_baths = pd.DataFrame(list(baths.items()), columns=["Baths", "Count"])
+
+    # Bed chart
+    bed_chart = alt.Chart(df_beds).mark_bar(color="skyblue").encode(
+        x=alt.X("Beds:N", title="Number of Beds"),
+        y=alt.Y("Count:Q", title="Number of Homes"),
+        tooltip=["Beds", "Count"]
+    ).properties(title="🏠 Bed Distribution")
+    st.altair_chart(bed_chart, use_container_width=True)
+
+    # Bath chart
+    bath_chart = alt.Chart(df_baths).mark_bar(color="orange").encode(
+        x=alt.X("Baths:N", title="Number of Baths"),
+        y=alt.Y("Count:Q", title="Number of Homes"),
+        tooltip=["Baths", "Count"]
+    ).properties(title="🛁 Bath Distribution")
+    st.altair_chart(bath_chart, use_container_width=True)

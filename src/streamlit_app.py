@@ -8,8 +8,8 @@ import re
 
 from templates.messages import empty_area_msg
 from utils.data_analysis import (
-    normalize_items, compute_kpis, rank_best_value, summarize_by_city, bed_bath_distribution,
-    display_best_deals, fancy_display_deals
+    normalize_items, compute_kpis, rank_best_value, summarize_by_city,display_best_deals, 
+    fancy_display_deals, display_bed_bath_distribution
 )
 
 # Constants
@@ -151,9 +151,7 @@ def analyze_data(homes):
     st.subheader("📍 Homes by City")
     st.dataframe(city_stats)
     # Bed/Bath dist
-    beds, baths = bed_bath_distribution(normalized)
-    st.bar_chart(beds)
-    st.bar_chart(baths)
+    display_bed_bath_distribution(normalized)
 
 # ---------- CHAT MODES ----------
 def chat_to_get_url():
