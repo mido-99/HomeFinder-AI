@@ -28,7 +28,7 @@ def init_session_state():
         "last_msg_index": 0,
         "last_request_time": 0,
         "session_id": str(uuid.uuid4()),
-        "final_url": '',
+        "run_data": {},
         "current_mode": 'chatting_to_get_url',
     }
     for key, val in defaults.items():
@@ -119,12 +119,12 @@ def send_request_to_n8n(user_message: str):
                 )
 
             elif run_data:
-                run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
-                render_message(
-                    "assistant",
-                    f"Great! I've started a house hunt for you. You can check it out [here]({run_url}).\n\n"
-                    "Once the run finishes, I'll show you a nice brief visual analysis on your data."
-                )
+                st.session_state.run_data = run_data
+                st.session_state.current_mode = 'scraping'
+                st.rerun()
+            
+            else:
+                render_message('assistant', f"else cuaght the response data: {data}")
 
         except Exception as e:
             render_message("assistant", f"Error: {e}")
@@ -149,12 +149,38 @@ def chat_to_get_url():
 
 
 def scraping():
+    """Data Scraping and Analysis mode"""
     chat_ui()
-    """Render UI after scraping has started"""
     render_chat()
 
-    with st.spinner("### 🔍 Great! Searching homes for you..."):
-        st.write(f"Your Scrape started at [This Page]({st.session_state.final_url})")
+    # Load run data
+    run_data = st.session_state.run_data
+    run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
+
+    with st.spinner("### 🔍 Searching homes for you..."):
+        render_message(
+            "ai",
+            f"Great! I've started a home hunt for you. You can check it out [here]({run_url}).\n\n"
+            "Once the run finishes, I'll show you a nice brief visual analysis on your data."
+        )
+        
+        # Poll Run
+        try:
+            session_id = st.session_state.session_id
+            payload = {"run_data": run_data, 'session_id': session_id}
+            response = requests.post(ANALYSIS_URL, json=payload, timeout=None)
+            response.raise_for_status()
+
+            data = response.json()
+
+            # Test export data
+            with open('homes.json', 'w', encoding='utf8') as f:
+                json.dump(data, f, indent=2)
+            
+            st.success('Data Exported locally Susseccfully!')
+        
+        except Exception as e:
+            render_message("ai", f"Error: {e}")
 
 # ---------- MAIN CHAT FLOW ----------
 def main():
@@ -163,9 +189,11 @@ def main():
 
     if st.session_state.current_mode == 'chatting_to_get_url':
         chat_to_get_url()
-        return
+        
+    elif st.session_state.current_mode == 'scraping':
+        scraping()
     
-    scraping()
+    st.info(st.session_state)
 
 
 if __name__ == "__main__":
