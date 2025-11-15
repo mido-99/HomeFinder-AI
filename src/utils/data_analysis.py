@@ -1,4 +1,8 @@
 """Homes Data Cleaning, Processing & Analysing functions."""
+import re
+import pandas as pd
+import streamlit as st
+from collections import defaultdict
 
 
 def normalize_items(items: list[dict]) -> list[dict]:
@@ -16,7 +20,7 @@ def normalize_items(items: list[dict]) -> list[dict]:
             "city": h.get("addressCity"),
             "state": h.get("addressState"),
             "zip": h.get("addressZipcode"),
-            "price": h.get("unformattedPrice") or hd.get("price"),
+            "price": h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price")),
             "beds": h.get("beds") or hd.get("bedrooms"),
             "baths": h.get("baths") or hd.get("bathrooms"),
             "sqft": h.get("area") or hd.get("livingArea"),
@@ -25,6 +29,7 @@ def normalize_items(items: list[dict]) -> list[dict]:
             "img": h.get("imgSrc"),
             "zestimate": h.get("zestimate") or hd.get("zestimate"),
             "broker": h.get("brokerName") or hd.get("listing_sub_type"),
+            "days_listed": hd.get("daysOnZillow"),
         })
 
     return normalized
@@ -56,7 +61,37 @@ def rank_best_value(data: list[dict], min_sqft=200):
 
     return sorted(deals, key=lambda x: x["price_per_sqft"])
 
-from collections import defaultdict
+def display_best_deals(normalized_data):
+    """Nicely Display best deals"""
+
+    best = rank_best_value(normalized_data)[:10]
+
+    # Prepare dataframe with selected columns
+    df = pd.DataFrame(best)
+    df_display = df[["img", "price", "address", "city", "state", "beds", "baths", "sqft", "url"]]
+
+    # Convert img URLs to Markdown so Streamlit renders thumbnails
+    df_display["price"] = df_display["price"].apply(lambda x: f"$**{x:,}**")
+    
+    # Convert img URLs to Markdown so Streamlit renders thumbnails
+    df_display["img"] = df_display["img"].apply(lambda x: f"![img]({x})")
+    # Convert URL to clickable links
+    df_display["url"] = df_display["url"].apply(lambda x: f"[Link]({x})")
+
+    # Show as Streamlit table
+    st.subheader("🏆 Best Deals (Lowest $/sqft)")
+    st.write("Showing top 10 homes based on $/sqft value")
+    st.write(df_display.to_markdown(index=False), unsafe_allow_html=True)
+
+def fancy_display_deals(best):
+    for house in best:
+        cols = st.columns([1,3])
+        cols[0].image(house["img"], width=100)
+        cols[1].markdown(f"""
+    **{house['address']}, {house['city']} {house['state']}**  
+    Beds: {house['beds']} | Baths: {house['baths']} | {house['sqft']} sqft  
+    Price: ${house['price']:,} | [Link]({house['url']})
+    """)
 
 def summarize_by_city(data: list[dict]):
     stats = defaultdict(lambda: {"count": 0, "prices": []})
@@ -73,7 +108,7 @@ def summarize_by_city(data: list[dict]):
         summary.append({
             "city": city,
             "count": s["count"],
-            "avg_price": sum(prices)/len(prices) if prices else None
+            "avg_price": round(sum(prices)/len(prices)) if prices else None
         })
 
     return sorted(summary, key=lambda x: x["count"], reverse=True)

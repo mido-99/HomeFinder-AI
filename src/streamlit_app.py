@@ -8,7 +8,8 @@ import re
 
 from templates.messages import empty_area_msg
 from utils.data_analysis import (
-    normalize_items, compute_kpis, rank_best_value, summarize_by_city, bed_bath_distribution
+    normalize_items, compute_kpis, rank_best_value, summarize_by_city, bed_bath_distribution,
+    display_best_deals, fancy_display_deals
 )
 
 # Constants
@@ -137,13 +138,14 @@ def analyze_data(homes):
     normalized = normalize_items(homes)
     # KPIs
     kpis = compute_kpis(normalized)
-    st.metric("Homes Found", kpis["count"])
-    st.metric("Average Price", f"${kpis['avg_price']:,}")
-    st.metric("Max Price", f"${kpis['max_price']:,}")
+    st.metric("🏠 Homes Found", kpis["count"])
+    st.metric("⚖️ Average Price", f"${kpis['avg_price']:,}")
+    st.metric("💰 Max Price", f"${kpis['max_price']:,}")
     # Best deals
-    best = rank_best_value(normalized)[:10]
+    # best = display_best_deals(normalized)
     st.subheader("🏆 Best Deals (Lowest $/sqft)")
-    st.dataframe(best)
+    best = rank_best_value(normalized)
+    fancy_display_deals(best)
     # City summary
     city_stats = summarize_by_city(normalized)
     st.subheader("📍 Homes by City")
