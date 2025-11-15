@@ -9,8 +9,9 @@ import re
 from templates.messages import empty_area_msg
 
 # Constants
-# N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
-N8N_WEBHOOK_URL = st.secrets["N8N_TEST_WEBHOOK_URL"]
+# CHAT_URL = st.secrets["N8N_PRODUCTION_CHAT"]
+CHAT_URL = st.secrets["N8N_TEST_CHAT"]
+ANALYSIS_URL = st.secrets["N8N_PRODUCTION_HOMES_ANALYSIS"]
 REQUEST_LIMIT_SECONDS = 5
 
 
@@ -91,7 +92,7 @@ def send_request_to_n8n(user_message: str):
             # Sent to n8n
             session_id = st.session_state.session_id
             payload = {"search_query_message": user_message, 'session_id': session_id}
-            response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=60)
+            response = requests.post(CHAT_URL, json=payload, timeout=60)
             response.raise_for_status()
 
             data = response.json()
