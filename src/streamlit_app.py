@@ -102,18 +102,17 @@ def send_request_to_n8n(user_message: str):
             run_data = data.get("run_data")
 
             if error:
-                render_message("assistant", error)
+                render_message("ai", error)
 
             elif empty_area:
                 render_message(
-                    "assistant",
+                    "ai",
                     empty_area_msg(search_url)
                 )
 
             elif search_url:
-                st.session_state.final_url = search_url
                 render_message(
-                    "assistant",
+                    "ai",
                     f"🔗 Is this your [Search URL]({search_url})?\n\n"
                     "If not, modify the filters and paste the final URL here.\n"
                     "Or simply reply with **yes** to confirm!",
@@ -128,7 +127,7 @@ def send_request_to_n8n(user_message: str):
                 render_message('assistant', f"else cuaght the response data: {data}")
 
         except Exception as e:
-            render_message("assistant", f"Error: {e}")
+            render_message("ai", f"Error: {e}")
 
 
 # ---------- CHAT MODES ----------
