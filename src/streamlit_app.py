@@ -7,6 +7,9 @@ import uuid
 import re
 
 from templates.messages import empty_area_msg
+from utils.data_analysis import (
+    normalize_items, compute_kpis, rank_best_value, summarize_by_city, bed_bath_distribution
+)
 
 # Constants
 # CHAT_URL = st.secrets["N8N_PRODUCTION_CHAT"]
@@ -19,7 +22,6 @@ REQUEST_LIMIT_SECONDS = 5
 def chat_ui():
     st.set_page_config(page_title="US Homes Finder", page_icon="🏠")
     st.title("🏡 HomeFinder AI ")
-    st.write("*What kind of home you’re looking for?*")
 
 # ---------- SESSION STATE INIT ----------
 def init_session_state():
@@ -129,11 +131,34 @@ def send_request_to_n8n(user_message: str):
         except Exception as e:
             render_message("ai", f"Error: {e}")
 
+def analyze_data(homes):
+    """Show homes results after analysis & cleaning."""
+    
+    normalized = normalize_items(homes)
+    # KPIs
+    kpis = compute_kpis(normalized)
+    st.metric("Homes Found", kpis["count"])
+    st.metric("Average Price", f"${kpis['avg_price']:,}")
+    st.metric("Max Price", f"${kpis['max_price']:,}")
+    # Best deals
+    best = rank_best_value(normalized)[:10]
+    st.subheader("🏆 Best Deals (Lowest $/sqft)")
+    st.dataframe(best)
+    # City summary
+    city_stats = summarize_by_city(normalized)
+    st.subheader("📍 Homes by City")
+    st.dataframe(city_stats)
+    # Bed/Bath dist
+    beds, baths = bed_bath_distribution(normalized)
+    st.bar_chart(beds)
+    st.bar_chart(baths)
 
 # ---------- CHAT MODES ----------
 def chat_to_get_url():
     """Chatbot interacts with user until we get the final search URL"""
     chat_ui()
+    st.write("*What kind of home you’re looking for?*")
+
     # Always render full chat before processing new message
     render_chat()
 
@@ -153,31 +178,31 @@ def scraping():
     chat_ui()
     render_chat()
 
-    # Load run data
-    run_data = st.session_state.run_data
-    run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
+    # # Load run data
+    # run_data = st.session_state.run_data
+    # run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
 
     with st.spinner("### 🔍 Searching homes for you..."):
-        render_message(
-            "ai",
-            f"Great! I've started a home hunt for you. You can check it out [here]({run_url}).\n\n"
-            "Once the run finishes, I'll show you a nice brief visual analysis on your data."
-        )
+        # render_message(
+        #     "ai",
+        #     f"Great! I've started a home hunt for you. You can check it out [here]({run_url}).\n\n"
+        #     "Once the run finishes, I'll show you a nice brief visual analysis on your data."
+        # )
         
-        # Poll Run
         try:
-            session_id = st.session_state.session_id
-            payload = {"run_data": run_data, 'session_id': session_id}
-            response = requests.post(ANALYSIS_URL, json=payload, timeout=None)
-            response.raise_for_status()
+            # Poll Run
+            # session_id = st.session_state.session_id
+            # payload = {"run_data": run_data, 'session_id': session_id}
+            # response = requests.post(ANALYSIS_URL, json=payload, timeout=None)
+            # response.raise_for_status()
 
-            data = response.json()
-
-            # Test export data
-            with open('homes.json', 'w', encoding='utf8') as f:
-                json.dump(data, f, indent=2)
+            # data = response.json()
+            #!
+            with open('homes.json', 'r') as f:
+                homes = json.load(f)
             
-            st.success('Data Exported locally Susseccfully!')
+            # Data Analysis
+            analyze_data(homes)
         
         except Exception as e:
             render_message("ai", f"Error: {e}")
@@ -188,9 +213,9 @@ def main():
     init_session_state()
 
     if st.session_state.current_mode == 'chatting_to_get_url':
-        chat_to_get_url()
+    #     chat_to_get_url()
         
-    elif st.session_state.current_mode == 'scraping':
+    # elif st.session_state.current_mode == 'scraping':
         scraping()
     
     st.info(st.session_state)
