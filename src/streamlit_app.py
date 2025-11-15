@@ -6,7 +6,7 @@ import time
 import uuid
 import re
 
-from src.templates.messages import empty_area_msg
+from templates.messages import empty_area_msg
 
 # Constants
 # N8N_WEBHOOK_URL = st.secrets["N8N_PRODUCTION_WEBHOOK_URL"]
@@ -91,13 +91,14 @@ def send_request_to_n8n(user_message: str):
             # Sent to n8n
             session_id = st.session_state.session_id
             payload = {"search_query_message": user_message, 'session_id': session_id}
-            response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=30)
+            response = requests.post(N8N_WEBHOOK_URL, json=payload, timeout=60)
             response.raise_for_status()
 
             data = response.json()
             search_url = data.get("search_url")
             empty_area = data.get("empty_area")
             error = data.get("error_message")
+            run_data = data.get("run_data")
 
             if error:
                 render_message("assistant", error)
@@ -115,6 +116,14 @@ def send_request_to_n8n(user_message: str):
                     f"🔗 Is this your [Search URL]({search_url})?\n\n"
                     "If not, modify the filters and paste the final URL here.\n"
                     "Or simply reply with **yes** to confirm!",
+                )
+
+            elif run_data:
+                run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
+                render_message(
+                    "assistant",
+                    f"Great! I've started a house hunt for you. You can check it out [here]({run_url}).\n\n"
+                    "Once the run finishes, I'll show you a nice brief visual analysis on your data."
                 )
 
         except Exception as e:
