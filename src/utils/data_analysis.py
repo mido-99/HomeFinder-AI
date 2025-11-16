@@ -9,29 +9,35 @@ from collections import defaultdict
 def normalize_items(items: list[dict]) -> list[dict]:
     """Extract consistent fields from Zillow scraper results."""
     normalized = []
+    warning_already_shown = False
 
     for item in items:
-        h = item
-        hd = h.get("hdpData", {}).get("homeInfo", {})
+        try:
+            h = item
+            hd = h.get("hdpData", {}).get("homeInfo", {})
 
-        normalized.append({
-            "zpid": h.get("zpid"),
-            "url": h.get("detailUrl"),
-            "address": h.get("address"),
-            "city": h.get("addressCity"),
-            "state": h.get("addressState"),
-            "zip": h.get("addressZipcode"),
-            "price": h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price")),
-            "beds": h.get("beds") or hd.get("bedrooms"),
-            "baths": h.get("baths") or hd.get("bathrooms"),
-            "sqft": h.get("area") or hd.get("livingArea"),
-            "lat": h.get("latLong", {}).get("latitude"),
-            "lng": h.get("latLong", {}).get("longitude"),
-            "img": h.get("imgSrc"),
-            "zestimate": h.get("zestimate") or hd.get("zestimate"),
-            "broker": h.get("brokerName") or hd.get("listing_sub_type"),
-            "days_listed": hd.get("daysOnZillow"),
-        })
+            normalized.append({
+                "zpid": h.get("zpid"),
+                "url": h.get("detailUrl"),
+                "address": h.get("address"),
+                "city": h.get("addressCity"),
+                "state": h.get("addressState"),
+                "zip": h.get("addressZipcode"),
+                "price": h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price")),
+                "beds": h.get("beds") or hd.get("bedrooms"),
+                "baths": h.get("baths") or hd.get("bathrooms"),
+                "sqft": h.get("area") or hd.get("livingArea"),
+                "lat": h.get("latLong", {}).get("latitude"),
+                "lng": h.get("latLong", {}).get("longitude"),
+                "img": h.get("imgSrc"),
+                "zestimate": h.get("zestimate") or hd.get("zestimate"),
+                "broker": h.get("brokerName") or hd.get("listing_sub_type"),
+                "days_listed": hd.get("daysOnZillow"),
+            })
+        except Exception as e:
+            if not warning_already_shown:
+                st.warning(f"💡 I was unable to process some homes due to data inconsistency, I've skipped them.")
+                warning_already_shown = True
 
     return normalized
 
@@ -141,7 +147,7 @@ def display_bed_bath_distribution(normalized_data):
         y=alt.Y("Count:Q", title="Number of Homes"),
         tooltip=["Beds", "Count"]
     ).properties(title="🏠 Bed Distribution")
-    st.altair_chart(bed_chart, use_container_width=True)
+    st.altair_chart(bed_chart, width='stretch')
 
     # Bath chart
     bath_chart = alt.Chart(df_baths).mark_bar(color="orange").encode(
@@ -149,4 +155,4 @@ def display_bed_bath_distribution(normalized_data):
         y=alt.Y("Count:Q", title="Number of Homes"),
         tooltip=["Baths", "Count"]
     ).properties(title="🛁 Bath Distribution")
-    st.altair_chart(bath_chart, use_container_width=True)
+    st.altair_chart(bath_chart, width='stretch')
