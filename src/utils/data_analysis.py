@@ -1,11 +1,13 @@
 """Homes Data Cleaning, Processing & Analysing functions."""
 import re
 import pandas as pd
+import numpy as np
 import streamlit as st
 import altair as alt
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 
+#-------------- Clean ----------------#
 def normalize_items(items: list[dict]) -> list[dict]:
     """Extract consistent fields from Zillow scraper results."""
     normalized = []
@@ -36,22 +38,87 @@ def normalize_items(items: list[dict]) -> list[dict]:
             })
         except Exception as e:
             if not warning_already_shown:
-                st.warning(f"💡 I was unable to process some homes due to data inconsistency, I've skipped them.")
+                st.warning("💡 I was unable to process some homes due to data inconsistency, I've skipped them.")
                 warning_already_shown = True
 
     return normalized
 
-def compute_kpis(data: list[dict]) -> dict:
+#-------------- Analyze ----------------#
+def compute_kpis(data: list[dict], user_max_price: int | None = None) -> dict:
     prices = [i["price"] for i in data if i["price"]]
     sqfts = [i["sqft"] for i in data if i["sqft"]]
+    beds = [i["beds"] for i in data if i["beds"]]
+
+    # --- Avg price per bedroom ---
+    price_per_bed = defaultdict(list)
+    for item in data:
+        if item["price"] and item["beds"]:
+            price_per_bed[item["beds"]].append(item["price"])
+
+    price_per_bed = {
+        b: round(sum(v)/len(v)) for b, v in price_per_bed.items()
+    }
+
+    # --- Budget match ---
+    percent_in_budget = None
+    if user_max_price:
+        percent_in_budget = round(
+            (sum(p <= user_max_price for p in prices) / len(prices)) * 100, 2
+        )
 
     return {
         "count": len(data),
-        "avg_price": round(sum(prices) / len(prices)) if prices else None,
+        "avg_price": round(sum(prices)/len(prices)) if prices else None,
+        "median_price": float(np.median(prices)) if prices else None,
         "min_price": min(prices, default=None),
         "max_price": max(prices, default=None),
-        "avg_sqft": sum(sqfts) / len(sqfts) if sqfts else None,
+        "avg_sqft": round(sum(sqfts)/len(sqfts)) if sqfts else None,
+        "price_buckets": compute_price_buckets(prices),
+        "most_common_beds": Counter(beds).most_common(1)[0][0] if beds else None,
+        "avg_price_per_bedroom": price_per_bed,
+        "percent_in_budget": percent_in_budget,
     }
+
+def compute_price_buckets(prices, num_buckets=4):
+    """Return dynamic price distribution buckets using quantiles."""
+    
+    if not prices or len(prices) < 2:
+        return {"No Data": len(prices)}
+
+    # Compute quantile cut points (Q1, Median, Q3)
+    qs = np.quantile(prices, np.linspace(0, 1, num_buckets + 1))
+
+    # Build buckets with readable labels
+    buckets = {}
+    for i in range(num_buckets):
+        low = int(qs[i])
+        high = int(qs[i + 1])
+
+        if i == 0:
+            label = f"< ${high:,}"
+        elif i == num_buckets - 1:
+            label = f">= ${low:,}"
+        else:
+            label = f"${low:,} - ${high:,}"
+
+        buckets[label] = 0
+
+    # Count homes falling into each bin
+    for p in prices:
+        for i in range(num_buckets):
+            low, high = qs[i], qs[i+1]
+            if low <= p <= high:
+                label = list(buckets.keys())[i]
+                buckets[label] += 1
+                break
+
+    return buckets
+
+def top_cheapest(data, limit=5):
+    return sorted(data, key=lambda x: x["price"] or float("inf"))[:limit]
+
+def top_expensive(data, limit=5):
+    return sorted(data, key=lambda x: -(x["price"] or 0))[:limit]
 
 def rank_best_value(data: list[dict], min_sqft=200):
     """Return homes ranked by value (lower $/sqft is better)."""
