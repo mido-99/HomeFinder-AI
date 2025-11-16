@@ -25,7 +25,7 @@ def normalize_items(items: list[dict]) -> list[dict]:
                 "city": h.get("addressCity"),
                 "state": h.get("addressState"),
                 "zip": h.get("addressZipcode"),
-                "price": h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price")),
+                "price": h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price")) or 0,
                 "beds": h.get("beds") or hd.get("bedrooms"),
                 "baths": h.get("baths") or hd.get("bathrooms"),
                 "sqft": h.get("area") or hd.get("livingArea"),
@@ -135,6 +135,41 @@ def rank_best_value(data: list[dict], min_sqft=200):
 
     return sorted(deals, key=lambda x: x["price_per_sqft"])
 
+def summarize_by_city(data: list[dict]):
+    stats = defaultdict(lambda: {"count": 0, "prices": []})
+
+    for i in data:
+        city = i["city"] or "Unknown"
+        stats[city]["count"] += 1
+        if i["price"]:
+            stats[city]["prices"].append(i["price"])
+
+    summary = []
+    for city, s in stats.items():
+        prices = s["prices"]
+        summary.append({
+            "city": city,
+            "count": s["count"],
+            "avg_price": round(sum(prices)/len(prices)) if prices else None,
+            "median_price": float(np.median(prices)) if prices else None,
+        })
+
+    return sorted(summary, key=lambda x: x["count"], reverse=True)
+
+def bed_bath_distribution(data: list[dict]):
+    
+    beds = defaultdict(int)
+    baths = defaultdict(int)
+
+    for i in data:
+        if i.get("beds"):
+            beds[i["beds"]] += 1
+        if i.get("baths"):
+            baths[i["baths"]] += 1
+
+    return dict(beds), dict(baths)
+
+#-------------- Display ----------------#
 def display_best_deals(normalized_data):
     """Nicely Display best deals"""
 
@@ -167,39 +202,6 @@ def fancy_display_deals(best):
     Price: ${house['price']:,} | [Link]({house['url']})
     """)
 
-def summarize_by_city(data: list[dict]):
-    stats = defaultdict(lambda: {"count": 0, "prices": []})
-
-    for i in data:
-        city = i["city"] or "Unknown"
-        stats[city]["count"] += 1
-        if i["price"]:
-            stats[city]["prices"].append(i["price"])
-
-    summary = []
-    for city, s in stats.items():
-        prices = s["prices"]
-        summary.append({
-            "city": city,
-            "count": s["count"],
-            "avg_price": round(sum(prices)/len(prices)) if prices else None
-        })
-
-    return sorted(summary, key=lambda x: x["count"], reverse=True)
-
-def bed_bath_distribution(data: list[dict]):
-    
-    beds = defaultdict(int)
-    baths = defaultdict(int)
-
-    for i in data:
-        if i.get("beds"):
-            beds[i["beds"]] += 1
-        if i.get("baths"):
-            baths[i["baths"]] += 1
-
-    return dict(beds), dict(baths)
-
 def display_bed_bath_distribution(normalized_data):
     
     beds, baths = bed_bath_distribution(normalized_data)
@@ -223,3 +225,25 @@ def display_bed_bath_distribution(normalized_data):
         tooltip=["Baths", "Count"]
     ).properties(title="🛁 Bath Distribution")
     st.altair_chart(bath_chart, width='stretch')
+
+def plot_price_buckets(price_buckets: dict):
+    # Convert to DataFrame
+    df = pd.DataFrame(list(price_buckets.items()), columns=["PriceRange", "Count"])
+    
+    # Sort by Count descending
+    df = df.sort_values("Count", ascending=False)
+
+    # Altair chart
+    chart = (
+        alt.Chart(df)
+        .mark_bar(color='violet')
+        .encode(
+            x=alt.X("PriceRange:N", title="Price Range"),
+            y=alt.Y("Count:Q", title="Number of Homes"),
+            tooltip=["Count"],  # only show the number on hover
+            order=alt.Order("Count", sort="descending")
+        )
+        .properties(width=600, height=400)
+    )
+
+    st.altair_chart(chart)
