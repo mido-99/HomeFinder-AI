@@ -27,13 +27,14 @@ def chat_ui():
 # ---------- SESSION STATE INIT ----------
 def init_session_state():
     defaults = {
+        "current_mode": 'chatting_to_get_url',
         "chat_history": [],
         "last_query_sent": '',
         "last_msg_index": 0,
         "last_request_time": 0,
         "session_id": str(uuid.uuid4()),
         "run_data": {},
-        "current_mode": 'chatting_to_get_url',
+        "pending_url": '',
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -94,7 +95,8 @@ def send_request_to_n8n(user_message: str):
 
             # Sent to n8n
             session_id = st.session_state.session_id
-            payload = {"search_query_message": user_message, 'session_id': session_id}
+            pending_url = st.session_state.pending_url
+            payload = {"search_query_message": user_message, 'session_id': session_id, 'pending_url': pending_url}
             response = requests.post(CHAT_URL, json=payload, timeout=60)
             response.raise_for_status()
 
@@ -114,6 +116,7 @@ def send_request_to_n8n(user_message: str):
                 )
 
             elif search_url:
+                st.session_state.pending_url = search_url
                 render_message(
                     "ai",
                     f"🔗 Is this your [Search URL]({search_url})?\n\n"
@@ -133,7 +136,7 @@ def send_request_to_n8n(user_message: str):
             render_message("ai", f"Error: {e}")
 
 def analyze_data(homes):
-    """Show homes results after analysis & cleaning."""
+    """Show homes results after cleaning & analysis."""
     
     normalized = normalize_items(homes)
     # KPIs
@@ -153,9 +156,11 @@ def analyze_data(homes):
     # Bed/Bath dist
     display_bed_bath_distribution(normalized)
 
+
 # ---------- CHAT MODES ----------
 def chat_to_get_url():
     """Chatbot interacts with user until we get the final search URL"""
+    
     chat_ui()
     st.write("*What kind of home you’re looking for?*")
 
@@ -218,6 +223,7 @@ def main():
     # elif st.session_state.current_mode == 'scraping':
         scraping()
     
+    #! For debug only
     st.info(st.session_state)
 
 
