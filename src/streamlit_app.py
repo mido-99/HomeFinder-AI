@@ -1,3 +1,4 @@
+import traceback
 from typing import Literal
 import streamlit as st
 import requests
@@ -5,11 +6,12 @@ import json
 import time
 import uuid
 import re
+import pandas as pd
 
 from templates.messages import empty_area_msg
 from utils.data_analysis import (
-    normalize_items, compute_kpis, rank_best_value, summarize_by_city,display_best_deals, 
-    fancy_display_deals, display_bed_bath_distribution
+    normalize_items, compute_kpis, rank_best_value, summarize_by_city, top_cheapest, top_expensive, 
+    fancy_display_deals, display_bed_bath_distribution, plot_price_buckets
 )
 
 # Constants
@@ -135,25 +137,58 @@ def send_request_to_n8n(user_message: str):
         except Exception as e:
             render_message("ai", f"Error: {e}")
 
-def analyze_data(homes):
+def analyze_data(homes, user_max_price=None):
     """Show homes results after cleaning & analysis."""
     
     normalized = normalize_items(homes)
-    # KPIs
-    kpis = compute_kpis(normalized)
-    st.metric("🏠 Homes Found", kpis["count"])
-    st.metric("⚖️ Average Price", f"${kpis['avg_price']:,}")
-    st.metric("💰 Max Price", f"${kpis['max_price']:,}")
-    # Best deals
-    # best = display_best_deals(normalized)
+
+    # --- KPIs ---
+    kpis = compute_kpis(normalized, user_max_price=user_max_price)
+
+    st.header("📊 Market Insights")
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("🏠 Homes Found", kpis["count"])
+    k2.metric("⚖️ Avg Price", f"${kpis['avg_price']:,}" if kpis["avg_price"] else "N/A")
+    k3.metric("⏱ Median Price", f"${kpis['median_price']:,}" if kpis["median_price"] else "N/A")
+    k4.metric("💰 Max Price", f"${kpis['max_price']:,}" if kpis["max_price"] else "N/A")
+    if kpis.get("percent_in_budget") is not None:
+        st.info(f"🎯 **{kpis['percent_in_budget']}%** of homes match your budget")
+
+    # --- Price Buckets ---
+    st.subheader("💵 Price Distribution")
+    plot_price_buckets(kpis["price_buckets"])
+
+    # --- Avg price per bedroom ---
+    if kpis["avg_price_per_bedroom"]:
+        st.subheader("🛏 Average Price per Bedroom")
+        st.dataframe(
+            pd.DataFrame(
+                [{"beds": b, "avg_price": p} for b, p in kpis["avg_price_per_bedroom"].items()]
+            )
+        )
+
+    # --- Best deals ---
     st.subheader("🏆 Best Deals (Lowest $/sqft)")
     best = rank_best_value(normalized)
     fancy_display_deals(best)
-    # City summary
-    city_stats = summarize_by_city(normalized)
+    st.divider()
+
+    # --- Top cheapest / expensive ---
+    st.subheader("💸 Cheapest Homes")
+    fancy_display_deals(top_cheapest(normalized))
+    st.divider()
+
+    st.subheader("💎 Most Expensive Homes")
+    fancy_display_deals(top_expensive(normalized))
+    st.divider()
+
+    # --- City summary ---
     st.subheader("📍 Homes by City")
+    city_stats = summarize_by_city(normalized)
     st.dataframe(city_stats)
-    # Bed/Bath dist
+
+    # --- Bed / Bath distribution ---
+    st.subheader("🚿 Bed & Bath Counts")
     display_bed_bath_distribution(normalized)
 
 
