@@ -245,7 +245,7 @@ def scraping():
             analyze_data(homes)
         
         except Exception as e:
-            render_message("ai", f"Error: {e}")
+            st.error(traceback.format_exc())
 
 # ---------- MAIN CHAT FLOW ----------
 def main():
