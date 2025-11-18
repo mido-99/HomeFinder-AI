@@ -218,44 +218,52 @@ def scraping():
     chat_ui()
     render_chat()
 
-    # # Load run data
-    # run_data = st.session_state.run_data
-    # run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
+    # Load run data
+    run_data = st.session_state.run_data
+    # run_data = {
+    #     'run_id': 'fyjk5aucd1Mz3iggU',
+    #     'run_url': 'https://console.apify.com/actors/runs/fyjk5aucd1Mz3iggU#output'
+    # }
+    run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
 
     with st.spinner("### 🔍 Searching homes for you..."):
-        # render_message(
-        #     "ai",
-        #     f"Great! I've started a home hunt for you. You can check it out [here]({run_url}).\n\n"
-        #     "Once the run finishes, I'll show you a nice brief visual analysis on your data."
-        # )
+        render_message(
+            "ai",
+            f"Great! I've started a home hunt for you. You can check it out [here]({run_url}).\n\n"
+            "Once the run finishes, I'll show you a nice brief visual analysis on your data."
+        )
         
         try:
             # Poll Run
-            # session_id = st.session_state.session_id
-            # payload = {"run_data": run_data, 'session_id': session_id}
-            # response = requests.post(ANALYSIS_URL, json=payload, timeout=None)
-            # response.raise_for_status()
+            session_id = st.session_state.session_id
+            payload = {"run_data": run_data, 'session_id': session_id}
+            response = requests.post(ANALYSIS_URL, json=payload, timeout=None)
+            response.raise_for_status()
 
-            # data = response.json()
-            #!
-            with open('homes.json', 'r') as f:
-                homes = json.load(f)
+            data = response.json()[0]
+            homes = data.get('homes')
+            error = data.get('error')
+
+            if error:
+                render_message('assistant', error['message'])
             
-            # Data Analysis
-            analyze_data(homes)
+            elif homes:
+                st.write('### 🔥 Here We Go')
+                # Data Analysis
+                analyze_data(homes)
         
         except Exception as e:
             st.error(traceback.format_exc())
 
-# ---------- MAIN CHAT FLOW ----------
+# ---------- MAIN APP FLOW ----------
 def main():
     
     init_session_state()
 
     if st.session_state.current_mode == 'chatting_to_get_url':
-    #     chat_to_get_url()
+        chat_to_get_url()
         
-    # elif st.session_state.current_mode == 'scraping':
+    elif st.session_state.current_mode == 'scraping':
         scraping()
     
     #! For debug only
