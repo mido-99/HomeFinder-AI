@@ -7,7 +7,7 @@ def empty_area_msg(search_url: str):
 
     msgs = [
         f"Oh no! 😔 Your search criteria didn't return any homes.\n\n"
-        f"🔗 Is this your [Search URL]({search_url})?\n\n",
+        f"🔗 Could you modify your & resend it [Search URL]({search_url})?\n\n",
         f"Hmm, it looks like your filters might be a little too strict! Zero results were found for the criteria I generated.\n\n"
         f"🔗 Here is the [Search URL]({search_url}) I attempted to use.",
         f"I couldn't find any homes that match those exact filters.\n\n"
