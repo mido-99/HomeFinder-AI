@@ -216,6 +216,7 @@ def chat_to_get_url():
 def scraping():  # sourcery skip: extract-method
     """Data Scraping and Analysis mode"""
     chat_ui()
+    render_chat()
 
     # Load run data
     run_data = st.session_state.run_data

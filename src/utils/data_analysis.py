@@ -52,7 +52,6 @@ def normalize_items(items: list[dict]) -> list[dict]:
                 "broker": h.get("brokerName") or hd.get("listing_sub_type"),
                 "days_listed": hd.get("daysOnZillow"),
             })
-            st.info( int(h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price") or '') or 0) )
         except Exception as e:
             skipped += 1
             
