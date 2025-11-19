@@ -108,6 +108,7 @@ def send_request_to_n8n(user_message: str):
             empty_area = data.get("empty_area")
             error = data.get("error_message")
             run_data = data.get("run_data")
+            ai_message = data.get("ai_message")
 
             if error:
                 render_message("ai", error)
@@ -129,6 +130,7 @@ def send_request_to_n8n(user_message: str):
 
             elif run_data:
                 st.session_state.run_data = run_data
+                st.session_state.ai_message = ai_message
                 st.session_state.current_mode = 'scraping'
                 st.rerun()
             
@@ -227,11 +229,12 @@ def scraping():  # sourcery skip: extract-method
     run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
 
     with st.spinner("### 🔍 Searching homes for you..."):
+        render_message("ai", st.session_state.ai_message)
         render_message(
-            "ai",
-            f"Great! I've started a home hunt for you. You can check it out [here]({run_url}).\n\n"
-            "Once the run finishes, I'll show you a nice brief visual analysis on your data."
-        )
+            'assistant', 
+            f"You can check your run [here]({run_url}).\n\n"
+            "Once the run finishes, I'll show you a nice brief analysis on your data."
+            )
         
         try:
             # Poll Run
