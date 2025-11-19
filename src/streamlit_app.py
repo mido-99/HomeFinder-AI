@@ -19,7 +19,7 @@ load_dotenv()
 CHAT_URL = os.getenv("N8N_PRODUCTION_CHAT")
 # CHAT_URL = os.getenv("N8N_TEST_CHAT")
 ANALYSIS_URL = os.getenv("N8N_PRODUCTION_HOMES_ANALYSIS")
-REQUEST_LIMIT_SECONDS = 5
+REQUEST_LIMIT_SECONDS = 10
 
 
 # ---------- SETUP UI ----------
