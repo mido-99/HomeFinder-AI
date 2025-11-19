@@ -1,10 +1,12 @@
 import traceback
-from typing import Literal
 import streamlit as st
 import requests
 import time
 import uuid
 import pandas as pd
+import os
+from dotenv import load_dotenv
+from typing import Literal
 
 from templates.messages import empty_area_msg
 from utils.data_analysis import (
@@ -12,10 +14,11 @@ from utils.data_analysis import (
     fancy_display_deals, display_bed_bath_distribution, plot_price_buckets
 )
 
+load_dotenv()
 # Constants
-CHAT_URL = st.secrets["N8N_PRODUCTION_CHAT"]
-# CHAT_URL = st.secrets["N8N_TEST_CHAT"]
-ANALYSIS_URL = st.secrets["N8N_PRODUCTION_HOMES_ANALYSIS"]
+CHAT_URL = os.getenv("N8N_PRODUCTION_CHAT")
+# CHAT_URL = os.getenv("N8N_TEST_CHAT")
+ANALYSIS_URL = os.getenv("N8N_PRODUCTION_HOMES_ANALYSIS")
 REQUEST_LIMIT_SECONDS = 5
 
 

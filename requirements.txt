@@ -3,3 +3,4 @@ requests
 pandas
 tabulate
 altair
+dotenv
