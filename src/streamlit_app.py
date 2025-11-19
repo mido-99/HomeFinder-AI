@@ -144,7 +144,6 @@ def analyze_data(homes, user_max_price=None):
 
     # --- KPIs ---
     kpis = compute_kpis(normalized, user_max_price=user_max_price)
-
     st.header("📊 Market Insights")
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("🏠 Homes Found", kpis["count"])
@@ -160,7 +159,7 @@ def analyze_data(homes, user_max_price=None):
 
     # --- Avg price per bedroom ---
     if kpis["avg_price_per_bedroom"]:
-        st.subheader("🛏 Average Price per Bedroom")
+        st.subheader("🛌 Average Price per Bedroom")
         st.dataframe(
             pd.DataFrame(
                 [{"beds": b, "avg_price": p} for b, p in kpis["avg_price_per_bedroom"].items()]
@@ -220,8 +219,8 @@ def scraping():
     # Load run data
     run_data = st.session_state.run_data
     # run_data = {
-    #     'run_id': 'fyjk5aucd1Mz3iggU',
-    #     'run_url': 'https://console.apify.com/actors/runs/fyjk5aucd1Mz3iggU#output'
+    #     'run_id': 'sizkgrMR1vytXqNFE',
+    #     'run_url': 'https://console.apify.com/actors/runs/sizkgrMR1vytXqNFE#output'
     # }
     run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
 
