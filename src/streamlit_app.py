@@ -2,10 +2,8 @@ import traceback
 from typing import Literal
 import streamlit as st
 import requests
-import json
 import time
 import uuid
-import re
 import pandas as pd
 
 from templates.messages import empty_area_msg
@@ -15,8 +13,8 @@ from utils.data_analysis import (
 )
 
 # Constants
-# CHAT_URL = st.secrets["N8N_PRODUCTION_CHAT"]
-CHAT_URL = st.secrets["N8N_TEST_CHAT"]
+CHAT_URL = st.secrets["N8N_PRODUCTION_CHAT"]
+# CHAT_URL = st.secrets["N8N_TEST_CHAT"]
 ANALYSIS_URL = st.secrets["N8N_PRODUCTION_HOMES_ANALYSIS"]
 REQUEST_LIMIT_SECONDS = 5
 
@@ -212,7 +210,7 @@ def chat_to_get_url():
         send_request_to_n8n(last_msg)
 
 
-def scraping():
+def scraping():  # sourcery skip: extract-method
     """Data Scraping and Analysis mode"""
     chat_ui()
 
