@@ -8,6 +8,21 @@ from collections import Counter, defaultdict
 
 
 #-------------- Clean ----------------#
+def safe_price(h, hd):
+    # 1) best field
+    if h.get("unformattedPrice") is not None:
+        return int(h["unformattedPrice"])
+
+    # 2) check both price sources
+    raw = h.get("price") or hd.get("price")
+    if raw:
+        cleaned = re.sub(r"[^\d]", "", raw)
+        if cleaned.isdigit():
+            return int(cleaned)
+
+    # fallback
+    return 0
+
 def normalize_items(items: list[dict]) -> list[dict]:
     """Extract consistent fields from Zillow scraper results."""
     normalized = []
@@ -25,7 +40,7 @@ def normalize_items(items: list[dict]) -> list[dict]:
                 "city": h.get("addressCity"),
                 "state": h.get("addressState"),
                 "zip": h.get("addressZipcode"),
-                "price": h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price")) or 0,
+                "price": safe_price(h, hd),
                 "beds": h.get("beds") or hd.get("bedrooms"),
                 "baths": h.get("baths") or hd.get("bathrooms"),
                 "sqft": h.get("area") or hd.get("livingArea"),
