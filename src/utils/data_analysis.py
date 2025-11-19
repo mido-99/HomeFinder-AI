@@ -94,38 +94,33 @@ def compute_kpis(data: list[dict], user_max_price: int | None = None) -> dict:
         "percent_in_budget": percent_in_budget,
     }
 
-def compute_price_buckets(prices, num_buckets=4):
-    """Return dynamic price distribution buckets using quantiles."""
-    
-    if not prices or len(prices) < 2:
-        return {"No Data": len(prices)}
+def compute_dynamic_buckets(prices, num_buckets=5):
+    if not prices:
+        return {}
 
-    # Compute quantile cut points (Q1, Median, Q3)
-    qs = np.quantile(prices, np.linspace(0, 1, num_buckets + 1))
+    mn = min(prices)
+    mx = max(prices)
+    # uniform bucket size
+    step = (mx - mn) / num_buckets
 
-    # Build buckets with readable labels
     buckets = {}
+    edges = [mn + i * step for i in range(num_buckets + 1)]
+
+    # prepare labels
     for i in range(num_buckets):
-        low = int(qs[i])
-        high = int(qs[i + 1])
-
-        if i == 0:
-            label = f"< ${high:,}"
-        elif i == num_buckets - 1:
-            label = f">= ${low:,}"
-        else:
-            label = f"${low:,} - ${high:,}"
-
+        low = int(edges[i])
+        high = int(edges[i + 1])
+        label = f"${low:,} - ${high:,}"
         buckets[label] = 0
 
-    # Count homes falling into each bin
+    # assign prices
     for p in prices:
-        for i in range(num_buckets):
-            low, high = qs[i], qs[i+1]
-            if low <= p <= high:
-                label = list(buckets.keys())[i]
-                buckets[label] += 1
-                break
+        # find which bucket
+        idx = min(int((p - mn) / step), num_buckets - 1)
+        low = int(edges[idx])
+        high = int(edges[idx + 1])
+        label = f"${low:,} - ${high:,}"
+        buckets[label] += 1
 
     return buckets
 
