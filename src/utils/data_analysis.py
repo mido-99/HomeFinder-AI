@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import altair as alt
+import traceback
 from collections import Counter, defaultdict
 
 
@@ -26,8 +27,8 @@ def safe_price(h, hd):
 def normalize_items(items: list[dict]) -> list[dict]:
     """Extract consistent fields from Zillow scraper results."""
     normalized = []
-    warning_already_shown = False
-
+    skipped = 0
+    
     for item in items:
         try:
             h = item
@@ -51,10 +52,12 @@ def normalize_items(items: list[dict]) -> list[dict]:
                 "broker": h.get("brokerName") or hd.get("listing_sub_type"),
                 "days_listed": hd.get("daysOnZillow"),
             })
+            st.info( int(h.get("unformattedPrice") or re.sub(r'[^\d]', '', hd.get("price") or '') or 0) )
         except Exception as e:
-            if not warning_already_shown:
-                st.warning("💡 I was unable to process some homes due to data inconsistency, I've skipped them.")
-                warning_already_shown = True
+            skipped += 1
+            
+    if skipped :
+        st.warning(f"💡 I was unable to process {skipped} homes due to data inconsistency, I've skipped them.")
 
     return normalized
 
@@ -84,11 +87,11 @@ def compute_kpis(data: list[dict], user_max_price: int | None = None) -> dict:
     return {
         "count": len(data),
         "avg_price": round(sum(prices)/len(prices)) if prices else None,
-        "median_price": float(np.median(prices)) if prices else None,
-        "min_price": min(prices, default=None),
-        "max_price": max(prices, default=None),
+        "median_price": int(np.median(prices)) if prices else None,
+        "min_price": round(min(prices, default=None)),
+        "max_price": round(max(prices, default=None)),
         "avg_sqft": round(sum(sqfts)/len(sqfts)) if sqfts else None,
-        "price_buckets": compute_price_buckets(prices),
+        "price_buckets": compute_dynamic_buckets(prices),
         "most_common_beds": Counter(beds).most_common(1)[0][0] if beds else None,
         "avg_price_per_bedroom": price_per_bed,
         "percent_in_budget": percent_in_budget,
@@ -179,11 +182,12 @@ def bed_bath_distribution(data: list[dict]):
 
     return dict(beds), dict(baths)
 
-#-------------- Display ----------------#
+
+#-------------- Visualize ----------------#
 def display_best_deals(normalized_data):
     """Nicely Display best deals"""
 
-    best = rank_best_value(normalized_data)[:10]
+    best = rank_best_value(normalized_data)[:5]
 
     # Prepare dataframe with selected columns
     df = pd.DataFrame(best)
@@ -202,7 +206,9 @@ def display_best_deals(normalized_data):
     st.write("Showing top 10 homes based on $/sqft value")
     st.write(df_display.to_markdown(index=False), unsafe_allow_html=True)
 
-def fancy_display_deals(best):
+def fancy_display_deals(best, limit: int = 5):
+
+    best = best[ :limit]
     for house in best:
         cols = st.columns([1,3])
         cols[0].image(house["img"], width=100)
