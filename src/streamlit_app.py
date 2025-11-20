@@ -223,10 +223,10 @@ def scraping():  # sourcery skip: extract-method
 
     # Load run data
     run_data = st.session_state.run_data
-    run_data = {
-        'run_id': 'hdhW11Ye8vnIhCRbi',
-        'run_url': 'https://console.apify.com/actors/runs/hdhW11Ye8vnIhCRbi#output'
-    }
+    # run_data = {
+    #     'run_id': 'hdhW11Ye8vnIhCRbi',
+    #     'run_url': 'https://console.apify.com/actors/runs/hdhW11Ye8vnIhCRbi#output'
+    # }
     run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
 
     with st.spinner("### 🔍 Searching homes for you..."):
