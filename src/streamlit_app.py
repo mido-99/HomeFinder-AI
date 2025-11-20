@@ -38,6 +38,7 @@ def init_session_state():
         "session_id": str(uuid.uuid4()),
         "run_data": {},
         "pending_url": '',
+        "ai_message": '',
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -222,10 +223,10 @@ def scraping():  # sourcery skip: extract-method
 
     # Load run data
     run_data = st.session_state.run_data
-    # run_data = {
-    #     'run_id': 'sizkgrMR1vytXqNFE',
-    #     'run_url': 'https://console.apify.com/actors/runs/sizkgrMR1vytXqNFE#output'
-    # }
+    run_data = {
+        'run_id': 'hdhW11Ye8vnIhCRbi',
+        'run_url': 'https://console.apify.com/actors/runs/hdhW11Ye8vnIhCRbi#output'
+    }
     run_id, run_url, run_status = run_data.get('run_id'),  run_data.get('run_url'), run_data.get('status')
 
     with st.spinner("### 🔍 Searching homes for you..."):
