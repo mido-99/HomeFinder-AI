@@ -85,13 +85,13 @@ def compute_kpis(data: list[dict], user_max_price: int | None = None) -> dict:
 
     return {
         "count": len(data),
-        "avg_price": round(sum(prices)/len(prices)) if prices else None,
-        "median_price": int(np.median(prices)) if prices else None,
-        "min_price": round(min(prices, default=None)),
-        "max_price": round(max(prices, default=None)),
-        "avg_sqft": round(sum(sqfts)/len(sqfts)) if sqfts else None,
+        "avg_price": round(sum(prices)/len(prices)) if prices else 0,
+        "median_price": int(np.median(prices)) if prices else 0,
+        "min_price": round(min(prices, default=0)),
+        "max_price": round(max(prices, default=0)),
+        "avg_sqft": round(sum(sqfts)/len(sqfts)) if sqfts else 0,
         "price_buckets": compute_dynamic_buckets(prices),
-        "most_common_beds": Counter(beds).most_common(1)[0][0] if beds else None,
+        "most_common_beds": Counter(beds).most_common(1)[0][0] if beds else 0,
         "avg_price_per_bedroom": price_per_bed,
         "percent_in_budget": percent_in_budget,
     }
