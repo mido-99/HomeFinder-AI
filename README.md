@@ -1,3 +1,16 @@
+---
+title: HomeFinder AI
+emoji: 🚀
+colorFrom: red
+colorTo: red
+sdk: docker
+app_port: 8501
+tags:
+- streamlit
+pinned: false
+short_description: Find Zillow homes then Extracts their details for further an
+---
+
 # 🏡 HomeFinder AI
 
 HomeFinder AI is an innovative, AI-powered tool designed to revolutionize the residential property search process in the United States. By replacing traditional, form-based searching with a conversational chat interface, the application quickly converts natural language housing requests into actionable, analyzed market data.
