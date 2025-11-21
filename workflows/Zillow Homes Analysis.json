@@ -1,0 +1,418 @@
+{
+  "name": "Zillow Homes Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "Datasets",
+        "datasetId": "={{ $json.defaultDatasetId }}"
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        -288
+      ],
+      "id": "7cf9fac0-2e91-428f-952c-ca15cba4182e",
+      "name": "Get dataset items",
+      "credentials": {
+        "apifyApi": {
+          "id": "CzWUmT3rD6Y6M0rL",
+          "name": "Zillow-Homes-Finder"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Actor runs",
+        "operation": "Get run",
+        "runId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        }
+      },
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        832,
+        -80
+      ],
+      "id": "44d8a11b-a59a-4134-b31b-98473d1a893d",
+      "name": "Poll Run",
+      "credentials": {
+        "apifyApi": {
+          "id": "CzWUmT3rD6Y6M0rL",
+          "name": "Zillow-Homes-Finder"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        -80
+      ],
+      "id": "bab8f608-6a80-42bb-ac92-68b27504d641",
+      "name": "Wait",
+      "webhookId": "f9e5fe60-ccd8-42ce-9ef7-bf789001f466"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "homes-analysis",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        -80
+      ],
+      "id": "85017890-e15e-440c-b8cc-65ac10c378dd",
+      "name": "Webhook",
+      "webhookId": "0fb846b7-1b74-4b26-a257-5b9015669b9d"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        2528,
+        -64
+      ],
+      "id": "ad4dd115-61ad-479a-b941-bf720db314ed",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"id\": \"{{ $json.body.run_data.run_id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        -80
+      ],
+      "id": "d78b44be-59da-4c1b-95d5-b2fa1748bd7d",
+      "name": "Universal Key"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "=SUCCEEDED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "56cde512-1956-4724-808c-66d6aa3a8107"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "17af4b2a-d119-4ae8-ac5c-14b7c823ef6b",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "RUNNING",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "88403c64-4c95-4cbb-abcf-adacf991ded0",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "05308c96-3726-48d3-9419-775c38ea815b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "57788c9a-c044-4876-b9c5-a88d618dc239",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        -288
+      ],
+      "id": "d41e7748-4ddd-48b4-855b-eaade82eb28a",
+      "name": "Dataset not Empty?"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=[\n  {\n    \"error\": {\n      \"message\": \"Unable to fetch data. The actor run was interrupted with status '{{ $json.status }}'.\",\n      \"status\": \"SUCCEEDED\"\n    }\n  }\n]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1712,
+        176
+      ],
+      "id": "95aee27b-f5fa-46af-adcf-a53ca01a794b",
+      "name": "Failed Run"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=[\n  {\n    \"error\": {\n      \"message\": \"{{ $json.error }}\",\n      \"status\": \"SUCCEEDED\"\n    }\n  }\n]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2000,
+        -64
+      ],
+      "id": "1116ee0d-1186-4f91-a67e-b175f7fc393c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "homes",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        -304
+      ],
+      "id": "7561714d-ef9e-470d-87d8-e1e2dd1a2d0f",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Poll Run": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Poll Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Universal Key",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get dataset items": {
+      "main": [
+        [
+          {
+            "node": "Dataset not Empty?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Universal Key": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get dataset items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failed Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dataset not Empty?": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Failed Run": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "adf1f924-8480-482f-8c60-2adf5e996d25",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a5f908741ae8d3a40d6024f6d5973bbde6f528e9344c887836ffd50f7aeca584"
+  },
+  "id": "OzTcmvIVcAHCXOYm",
+  "tags": []
+}

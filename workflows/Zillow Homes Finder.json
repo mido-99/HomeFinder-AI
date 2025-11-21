@@ -1,0 +1,974 @@
+{
+  "name": "Zillow Homes Finder",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        4800,
+        720
+      ],
+      "id": "4f773609-3c80-4e58-b0fd-918651fecbc8",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://www.zillow.com/async-create-search-page-state",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"accept\": \"*/*\",\n  \"accept-language\": \"en-US,en;q=0.9,ar;q=0.8\",\n  \"content-type\": \"application/json\",\n  \"origin\": \"https://www.zillow.com\",\n  \"priority\": \"u=1, i\",\n  \"sec-ch-ua\": \"\\\"Google Chrome\\\";v=\\\"141\\\", \\\"Not?A_Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"141\\\"\",\n  \"sec-ch-ua-mobile\": \"?0\",\n  \"sec-ch-ua-platform\": \"\\\"Windows\\\"\",\n  \"sec-fetch-dest\": \"empty\",\n  \"sec-fetch-mode\": \"cors\",\n  \"sec-fetch-site\": \"same-origin\",\n  \"user-agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\",\n  \"x-caller-id\": \"static-search-page-graphql\",\n  \"cookie\": \"{{ $('Merge').item.json.cookie }}\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"searchQueryState\": {\n      \"isMapVisible\": true,\n      \"mapBounds\": {\n          \"north\": 37.00426,\n          \"south\": 31.332177,\n          \"east\": -109.045223,\n          \"west\": -114.816591\n      },\n      \"mapZoom\": 7,\n      \"usersSearchTerm\": \"{{ $('Search Like User').item.json.data.searchAssistanceResult.results[0].id }}\",\n      \"filterState\": {{ JSON.stringify($json.filterState) }},\n      \"isListVisible\": true,\n      \"listPriceActive\": true,\n      \"pagination\": {},\n      \"regionSelection\": [\n          {\n              \"regionId\": {{ $('Search Like User').item.json.data.searchAssistanceResult.results[0].regionIds[0] }}\n          }\n      ]\n  },\n  \"wants\": {\n      \"regionResults\": [\n          \"regionResults\"\n      ]\n  },\n  \"requestId\": 2,\n  \"isDebugRequest\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3168,
+        704
+      ],
+      "id": "5e007877-bcd0-40cf-befa-c37456833b8e",
+      "name": "Locate Map Bounds"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://www.zillow.com/async-create-search-page-state",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"accept\": \"*/*\",\n  \"accept-language\": \"en-US,en;q=0.9,ar;q=0.8\",\n  \"content-type\": \"application/json\",\n  \"origin\": \"https://www.zillow.com\",\n  \"priority\": \"u=1, i\",\n  \"sec-ch-ua\": \"\\\"Google Chrome\\\";v=\\\"141\\\", \\\"Not?A_Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"141\\\"\",\n  \"sec-ch-ua-mobile\": \"?0\",\n  \"sec-ch-ua-platform\": \"\\\"Windows\\\"\",\n  \"sec-fetch-dest\": \"empty\",\n  \"sec-fetch-mode\": \"cors\",\n  \"sec-fetch-site\": \"same-origin\",\n  \"user-agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\",\n  \"x-caller-id\": \"static-search-page-graphql\",\n  \"cookie\": \"{{ $('Merge').item.json.cookie }}\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"searchQueryState\": {\n      \"isMapVisible\": true,\n      \"mapBounds\": {\n          \"north\": {{ $json.regionState.regionBounds.north }},\n          \"south\": {{ $json.regionState.regionBounds.south }},\n          \"east\": {{ $json.regionState.regionBounds.east }},\n          \"west\": {{ $json.regionState.regionBounds.west }}\n      },\n      \"mapZoom\": 7,\n      \"usersSearchTerm\": \"{{ $('Search Like User').item.json.data.searchAssistanceResult.results[0].id }}\",\n      \"filterState\": {{ JSON.stringify($('Raw Text -> JSON').item.json.filterState) }},\n      \"isListVisible\": true,\n      \"listPriceActive\": true,\n      \"pagination\": {},\n      \"category\": \"cat1\",\n      \"regionSelection\": [\n          {\n              \"regionId\": {{ $json.regionState.regionInfo[0].regionId }},\n              \"regionType\": {{ $json.regionState.regionInfo[0].regionType }}\n          }\n      ]\n  },\n  \"wants\": {\n      \"cat1\": [\n          \"listResults\",\n          \"mapResults\"\n      ],\n      \"cat2\": [\n          \"total\"\n      ]\n  },\n  \"requestId\": {{ $json.requestId +1 }},\n  \"isDebugRequest\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3392,
+        704
+      ],
+      "id": "36e64100-d5ea-44ad-95ca-98af8869feed",
+      "name": "Find Homes"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import json\n\ndef format_cookies_for_header(cookies_dict):\n\n    cookie_parts = []\n    # Iterate through the dictionary keys and values\n    for key, value in cookies_dict.items():\n        if key.startswith('_source_file') or not value or value == 'null':\n            continue\n        \n        str_value = str(value)\n        str_formatted = str_value.replace('\"', '\\\\\"')\n        cookie_parts.append(f\"{key}={str_formatted}\")\n    return \"; \".join(cookie_parts)\n\nreturn {\n  'cookie': format_cookies_for_header(_input.first().json)\n  }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        832
+      ],
+      "id": "2807e166-4fb3-444a-9f5b-e79834b3970c",
+      "name": "Parse Cookie"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "python",
+        "pythonCode": "import json\n\nraw_response = _input.item.json.content.parts[0].text\n\nif raw_response.startswith('{') and raw_response.endswith('}'):\n    return json.loads(raw_response)\n\ntrimmed_text = raw_response[raw_response.find('{') : raw_response.rfind('}') + 1]\nresponse_json = json.loads(trimmed_text)\n\nreturn response_json"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2944,
+        704
+      ],
+      "id": "9aa45413-55de-41f0-a381-04c681242ed4",
+      "name": "Raw Text -> JSON",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "cat1.searchResults.listResults",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3408,
+        928
+      ],
+      "id": "72cc6582-b97b-4509-a5b5-284a91ca9342",
+      "name": "Split List Results"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "home-finder-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        608,
+        416
+      ],
+      "id": "d7c23ee9-d037-4066-bca6-0e1e0182a5d8",
+      "name": "User Message",
+      "webhookId": "8147d7ef-2286-4c0a-8e04-f215b20d1777"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9bc9678-53b0-4b9d-939f-c967f94dc089",
+              "name": "error_message",
+              "value": "={{ $json.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4416,
+        400
+      ],
+      "id": "63abc740-f05e-4878-971e-d09f5eee5e73",
+      "name": "Return Error"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.0-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.0-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ JSON.stringify($json.data.searchAssistanceResult.results[0]) }}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {
+          "systemMessage": "=You are a Zillow Search Filter Translator AI. Your job is to receive a JSON object describing a user's search intent and render a valid Zillow filterState JSON object.\n\nGENERAL RULES:\n1. Output must be a single JSON object with exactly one key: \"filterState\".\n2. Always include the sort parameter: \"sort\": {\"value\": \"globalrelevanceex\"}.\n3. Include only filters relevant to the user query. Do not include filters not mentioned by user or default filters or filters with empty values (e.g.: {}).\n4. Output must be valid JSON with no markdown, no emojis, no explanations, and no comments.\n\n===\nHOME STATUS HANDLING:\nDetermine the status from listingStatusType or the result id (search term): (For Sale, For Rent, or Sold).\n\n1. Status: FOR SALE (Default)\n- Use the \"price\" filter for cost limits.\n- Omit all explicit status filters (isForRent, isRecentlySold).\n- Omit all status exclusion filters.\n\n2. Status: FOR RENT\n- Use \"monthlyPayment\" instead of \"price\" for cost limits.\n- Set \"isForRent\": {\"value\": true}.\n- You MUST include the following status exclusion filters, setting them all to false: \"isForSaleByOwner\", \"isNewConstruction\", \"isComingSoon\", \"isAuction\", \"isForSaleForeclosure\", \"isForSaleByAgent\".\n\n3. Status: SOLD (Recently Sold)\n- Use the \"price\" filter for cost limits.\n- Set \"rs\": {\"value\": true}.\n- You MUST include the following status exclusion filters, setting them all to false using these specific abbreviated keys:\n\"auc\": {\"value\": false} (Auction)\n\"cmsn\": {\"value\": false} (Coming Soon)\n\"fore\": {\"value\": false} (Foreclosure)\n\"fsba\": {\"value\": false} (For Sale by Agent)\n\"fsbo\": {\"value\": false} (For Sale by Owner)\n\"nc\": {\"value\": false} (New Construction)\n\n===\nHOME TYPE HANDLING:\nMajor types are: isTownhouse, isManufactured, isMultiFamily, isApartment, isCondo, isSingleFamily, isApartmentOrCondo.\nRefer to the \"Keywords\" or \"homeType\" in the input, but always verify against the user search term context.\n\nRule A (Specific Type Requested):\nIf the user specifies one or more types (e.g., \"only condos\" or \"house and land\"):\n- The target types requested must be OMITTED from the output (do not set them to true).\n- All other home types from the list above must be included and set to false.\n\nRule B (Generic Search/No Specific Type):\nIf the user does not specify a specific type (e.g., searches for \"homes\", \"properties\", \"places\", or just a location like \"NC homes with fireplace\"):\n- Ignore all types.\n- Do NOT send any home type filters set to false. Omit them completely.\n\n---\nSpecific filters rules:\n\n- Basement\nIf user wants a property with basement you HAVE to include this:\n\"hbas\": {\"value\": true}, \"basf\": {\"value\": true}, \"basu\": {\"value\": true}\n-- Those up are 2 sub types for basements; finished & unfinished if they specifically ask for it you may modify one of them to false.\n\n- Fireplace does not mean Basement, These are different.\n\n===\nNUMERIC AND FIELD LOGIC:\n1. Only include numeric/boolean filters (beds, baths, sqft, pool, HOA, basement, year built, etc.) if explicitly mentioned.\n2. Exact Matches: If a user wants an exact number (e.g., exactly 1 bed), set that value for both min and max. Example: \"beds\": {\"min\": 1, \"max\": 1}.\n3. Price Field Fallback: Regardless of the input field name, extract the value. If the status requires \"price\" but only \"monthlyPayment\" is available in input, use the value for \"price\" (and vice versa).\n4. Days on Zillow (doz):\n- If the number of days is a year (365) or divisible by 30 (months), convert to months format. Example: 365 days -> \"doz\": {\"value\": \"12m\"}.\n- Otherwise, output the number of days as a string. Example: 60 days -> \"doz\": {\"value\": \"60\"}.\n\n======\nALLOWED FILTERS REFERENCE:\nUse only these keys for your output:\n{\n  \"filterState\": {\n    \"sort\": {\"value\": \"globalrelevanceex\"},\n    \"isTownhouse\": {\"value\": false},\n    \"isManufactured\": {\"value\": false},\n    \"isMultiFamily\": {\"value\": false},\n    \"isApartment\": {\"value\": false},\n    \"isCondo\": {\"value\": false},\n    \"isSingleFamily\": {\"value\": false},\n    \"isApartmentOrCondo\": {\"value\": false},\n    \"baths\": {\"min\": 2},\n    \"price\": {\"min\": 50000, \"max\": 450000},\n    \"monthlyPayment\": {\"min\": 250, \"max\": 2250},\n    \"sqft\": {\"min\": 2500},\n    \"lotSize\": {\"max\": 217800},\n    \"built\": {\"min\": 2000},\n    \"isBasementFinished\": {\"value\": true},\n    \"isBasementUnfinished\": {\"value\": true},\n    \"hasBasement\": {\"value\": true},\n    \"isWaterView\": {\"value\": true},\n    \"hoa\": {\"max\": 200},\n    \"isPreMarketPreForeclosure\": {\"value\": true},\n    \"isPreMarketForeclosure\": {\"value\": true},\n    \"isAcceptingBackupOffersSelected\": {\"value\": true},\n    \"isPendingListingsSelected\": {\"value\": true},\n    \"isOpenHousesOnly\": {\"value\": true},\n    \"is3dHome\": {\"value\": true},\n    \"isShowcase\": {\"value\": true},\n    \"parkingSpots\": {\"min\": 2},\n    \"hasAirConditioning\": {\"value\": true},\n    \"hasPool\": {\"value\": true},\n    \"isWaterfront\": {\"value\": true},\n    \"isCityView\": {\"value\": true},\n    \"isMountainView\": {\"value\": true},\n    \"isParkView\": {\"value\": true},\n    \"isNewConstruction\": {\"value\": true},\n    \"isComingSoon\": {\"value\": true},\n    \"isAuction\": {\"value\": true},\n    \"isForSaleForeclosure\": {\"value\": true},\n    \"isForSaleByAgent\": {\"value\": true},\n    \"isForSaleByOwner\": {\"value\": true},\n    \"doz\": {\"value\": \"90\"}\n  }\n}\n\nEXAMPLES:\n\nEx 1: User wants a house with 3 beds, 2-3 baths (Note: isSingleFamily is the target, so it is omitted. Others set to false).\nOutput:\n{\n  \"filterState\": {\n    \"sort\": {\"value\": \"globalrelevanceex\"},\n    \"isTownhouse\": {\"value\": false},\n    \"isManufactured\": {\"value\": false},\n    \"isMultiFamily\": {\"value\": false},\n    \"isApartment\": {\"value\": false},\n    \"isCondo\": {\"value\": false},\n    \"isApartmentOrCondo\": {\"value\": false},\n    \"beds\": {\"min\": 3},\n    \"baths\": {\"min\": 2, \"max\": 3}\n  }\n}\n\nEx 2: User wants land bigger than 400 sqft (Note: isLotLand/Land is target, so it is omitted. Others set to false).\nOutput:\n{\n  \"filterState\": {\n    \"sort\": {\"value\": \"globalrelevanceex\"},\n    \"isTownhouse\": {\"value\": false},\n    \"isManufactured\": {\"value\": false},\n    \"isMultiFamily\": {\"value\": false},\n    \"isApartment\": {\"value\": false},\n    \"isCondo\": {\"value\": false},\n    \"isSingleFamily\": {\"value\": false},\n    \"isApartmentOrCondo\": {\"value\": false},\n    \"sqft\": {\"min\": 400}\n  }\n}\n\nEx 3: \"NC homes sold price 50k+ in last year\"\nOutput:\n{\n  \"filterState\": {\n    \"sort\": {\"value\": \"globalrelevanceex\"},\n    \"fsba\": {\"value\": false},\n    \"fsbo\": {\"value\": false},\n    \"nc\": {\"value\": false},\n    \"cmsn\": {\"value\": false},\n    \"auc\": {\"value\": false},\n    \"fore\": {\"value\": false},\n    \"rs\": {\"value\": true},\n    \"price\": {\"min\": 50000},\n    \"doz\": {\"value\": \"12m\"}\n  }\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        704
+      ],
+      "id": "cff113d2-8243-4565-8078-d34da3397d06",
+      "name": "Filters Constructor",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "AFT2hSiBfFRRKJ2T",
+          "name": "Zillow-Homes-Finder"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        704,
+        624
+      ],
+      "id": "07a82504-e138-4237-8675-823e25562fa2",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "AFT2hSiBfFRRKJ2T",
+          "name": "Zillow-Homes-Finder"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.session_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        848,
+        624
+      ],
+      "id": "8c796ca1-c3a2-4d29-8301-8b067b27727e",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=user message:\n{{ $json.body.search_query_message }}\n\ncurrent URL:\n{{ $json.body.pending_url }}",
+        "options": {
+          "systemMessage": "=You are a Zillow Search Query Translator AI.\n\nYou MUST ALWAYS respond with a JSON object in this exact format:\n\n{\n  \"type\": \"filters\" | \"url\" | \"error\" | \"reject\",\n  \"data\": {},\n  \"message\": \"\"\n}\n\nThe meaning of each type:\n- \"url\": user provided a valid Zillow Search URL or \nuser confirmed a previously generated URL.\n- \"filters\": user provided home search criteria → generate a clean keyword-based search string & output user desired home status.\n- \"error\": user attempted to provide a URL but it was invalid, or they rejected the URL but did not provide a valid replacement.\n- \"reject\": user message is NOT related to home searching.\n\nGENERAL RULES:\n1. You must NEVER output anything outside the JSON envelope.\n2. You must NEVER output explanations, markdown (except in message content itself), or multiple objects.\n4. ALWAYS validate Zillow URLs strictly.\n5. Ignore filler phrases like “I’m looking for…”, “well I need…”, “could you find…”.\n6. BE CREATIVE and COOl like a human in your messages not a bot-like template responses.\n7. You may use markdown & emojis ONLY in message body content.\n\n=====\nLOGIC RULESET\n\nPRIMARY FAILURE CHECK:\nIf the message is NOT related to U.S. home search criteria (for example: science, sports, history, politics, or anything unrelated):\n→ type = \"reject\"\n→ message = Non-offensive friendly message telling user that you are here to help them find homes. You can answer simple & short questions, but if user keeps sending messages in other topics other than homes, tell them that you can only help with finding homes.\nEx 1:\n- I'm in the mood today. OR My wife gave birth. OR I succeeded in ... OR I have great news in ...\n= Great! .. Or Aswesome! .. OR That's amazing...\nEx 2:\n- I feel so bad I failed ... OR I lost my ... OR I'm worried about ...\n= I feel sorry for you .. OR Oh that's bad! I wish you .. OR I'm sorry to hear that ...\nEx 3:\n- What's the weather today?\n= Unfortunately I don't have eyes to see through your window, though I see & search all the US homes for you :)\n\n------\nVALID ZILLOW URLs:\nIf the user provides a valid Zillow Search URL, or user CONFIRMS a previously generated URL (retrieve it from the recent chat message) (e.g., “yes”, “correct”, \"I guess so\", “that’s right”, \"exactly\", any similar phrases):\n:\n→ type = \"url\"\n→ data = {\n    \"search_url\": <URL>,\n    \"property_status\": \"sold\" | \"for_sale\" | \"for_rent\",\n    \"max_items\": <integer (default: 10, max: 50)>\n}\n→ message = \"Nicely tell user that you started the run & wating for results\"\n\n-----\nIf the user REJECTS the URL but does NOT provide a valid replacement:\n→ type = \"error\"\n→ message = Tell user to either copy & paste final Zillow search URL with filters applied or to tell you their filters and you'll help them.\n→ data = {}\n\n------\nCRITERIA-TO-SEARCH-STRING GENERATION:\nIf the message contains ANY real estate criteria (location, beds, baths, price ranges, sqft, property type):\n→ type = \"filters\"\n→ data = {\n    \"keywords\": \"<generated search string>\",\n    \"userSearchContext\": One of (\"FOR_SALE\", \"FOR_RENT\", \"SOLD\") according to user's intent.\n}\n→ message = \"\"\n\nRULES FOR GENERATING THE SEARCH STRING:\n1. Output ONLY the keyword-based phrase—no explanations or extra text.\n\n2. Combine all extracted data into one clean line.\n\nWhen user mentions minimum, at least, above, higher than, greater than, etc:\n→ Convert to “<value>+”\n→ EXAMPLE: “above 50k” → “price 50k+”\n\nWhen user mentions max, at most, below, less than, not more than, etc:\n→ Convert to “<value> max”\n→ EXAMPLE: “max 200k” → “price 200k max”\n\nWhen user mentions a range (from .. to ...) or (min ... max ...):\n→ Convert to “range <min value> to <max value>”\n→ EXAMPLE: “range of 5000 to 9000” → “range 5k - 9k”\n\n\nUnder NO circumstances may you output the words “minimum” or “maximum”.\n\n5. Use only letters, numbers, spaces or allowd symbols (\"+\",  \"-\"). No “&”, “/”, “( )”, “:”, etc.\n\n6. Property types must be simplified (e.g., “single home or multi-family homes”).\n\n------\nINVALID URL HANDLING:\nIf the user tries to give a URL but it is NOT a valid Zillow Search URL:\n→ type = \"error\"\n→ message = \"Sorry, this is not a valid Zillow search URL. Please paste a Zillow URL with your filters applied.\"\n→ data = {}\n\n------\nMEMORY RULE:\n\nYou must ALWAYS remember the last valid Zillow Search URL you generated or the user provided.\nCall this stored value: LAST_URL.\n\nWhenever the user:\n\n- provides a valid Zillow Search URL → update LAST_URL\n- confirms a URL (“yes”, “correct”, “exactly”, “use that one”, etc.) → return LAST_URL as shown in \"url\" type\n- rejects the URL → clear LAST_URL\n\n\n------\nREMINDER:\n- ALWAYS return a JSON object.\n- NEVER output text outside JSON.\n- NEVER break format under any circumstance.\n\n\nEx 1:\nInput: \"can you help me find 25 homes sold last year in NC above 50k\"\nOutput (inside JSON):\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"NC homes price 50k+ in last year\",\n    \"userSearchContext\": \"SOLD\"\n  },\n  \"message\": \"\"\n}\n\nEx 2:\nInput: \"I'm looking for homes in North Carolina I don't want it larger than 1000 sqft, also prefer to have 2 baths for my kids. we're a medium family so I guess 3 or more beds is enought for us last month\"\nOutput (inside JSON):\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"nc homes 1000 sqft max area price range 50k to 100k having 2 baths and 3 beds in last month\",\n  \"userSearchContext\": \"FOR_SALE\"\n  },\n  \"message\": \"\"\n}\n\nEx 3:\nInput: \"I need to rent an apartment or a condo in Miami. My budget is between $1800 and $2500 per month, and I'd like at least 2 bedrooms.\"\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"Miami homes for rent monthlyPayment range 1800 to 2500 having 2+ beds isApartment isCondo\",\n    \"userSearchContext\": \"FOR_RENT\"\n  },\n  \"message\": \"\"\n}\n\nEx 4:\nInput: \"Show me single family homes that sold in the last year in Seattle built after 2010 that have a pool and a finished basement.\"\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"Seattle single-family homes built after 2010 has sold in last year has pool with finished basement\"\n    \"userSearchContext\": \"SOLD\"\n  },\n  \"message\": \"\"\n}\n\nEx 5:\nInput: \"Find me only townhouses for sale in Austin with exactly 3 bathrooms and room for 3 or more parking spots.\"\nOutput:\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"Austin townhouses for sale having exact 3 baths with 3+ parking\",\n    \"userSearchContext\": \"FOR_SALE\"\n  },\n  \"message\": \"\"\n}\n\nExample 6:\nInput: \"I'm looking for a manufactured home for sale in Phoenix. Must have a mountain view and the HOA fees can't be higher than $150 per month.\"\nOutput (inside JSON):\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"Phoenix manufactured homes for sale mountain view hoa max 150\",\n    \"userSearchContext\": \"FOR_SALE\"\n  },\n  \"message\": \"\"\n}\n\nExample 7: \nInput: \"Filter for foreclosures and open houses only in Chicago. I prefer a multi-family or single family home with a large lot size (over 1 acre).\"\nOutput (inside JSON):\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"Chicago Foreclosure Open House Multi-Family single-family lot size 43560+\",\n    \"userSearchContext\": \"FOR_SALE\"\n  },\n  \"message\": \"\"\n}\n\nExample 8: \nInput: \"I need to find an apartment for sale in New York City that is at least 800 sqft and must have central air conditioning.\"\nOutput (inside JSON):\n{\n  \"type\": \"filters\",\n  \"data\": {\n    \"keywords\": \"New York City apartment for sale sqft 800+ has air conditioning\",\n    \"userSearchContext\": \"FOR_SALE\"\n  },\n  \"message\": \"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        416
+      ],
+      "id": "64c4c4ff-bd8b-443f-aba0-88d6c2fda264",
+      "name": "Chatbot"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "python",
+        "pythonCode": "import json\n\ntry:\n  raw_response = _input.item.json.output\n  \n  if raw_response.startswith('{'):\n      return json.loads(raw_response)\n  \n  trimmed_text = raw_response[raw_response.find('{') : raw_response.rfind('}') + 1]\n  response_json = json.loads(trimmed_text)\n  \n  return response_json\n\nexcept:\n  return item"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        416
+      ],
+      "id": "c7bfacc6-98f8-474e-8c6b-725287442a4b",
+      "name": "Normalize AI Response",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c7aefda8-fb5e-4ae9-bb14-a5311ca366db",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "url",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Final URL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "reject",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    },
+                    "id": "8f5edb2f-223c-450e-a41c-6064df5a5b80"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Other Topic"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "81ab0fbd-48ef-4373-932b-a2f55c8ddff2",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "error",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Prompt URL"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "cc3ad843-c6ed-4c6f-99f1-b25185e696d5",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "filters",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Valid Filters"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1472,
+        384
+      ],
+      "id": "7e272711-80b9-427a-81f4-deafb3a33ffd",
+      "name": "Asking for What?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c58b14be-5abf-4125-8746-900d1001f0d8",
+              "name": "zpid",
+              "value": "={{ $json.zpid }}",
+              "type": "number"
+            },
+            {
+              "id": "dafdb466-1196-42d0-a858-d7ce571ae4f6",
+              "name": "price",
+              "value": "={{ $json.price }}",
+              "type": "string"
+            },
+            {
+              "id": "59d00ccc-d95e-4018-9516-e1227b4e060f",
+              "name": "Image",
+              "value": "={{ $json.imgSrc }}",
+              "type": "string"
+            },
+            {
+              "id": "5d8d29cd-39eb-40de-b02c-a54ee3c81ed3",
+              "name": "URL",
+              "value": "={{ $json.detailUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3632,
+        928
+      ],
+      "id": "1885415b-c4aa-497a-9811-a960f4b966d9",
+      "name": "Verify Results"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"searchQueryState\": {\n      \"isMapVisible\": true,\n      \"mapBounds\": {\n          \"north\": {{ $json.regionState.regionBounds.north }},\n          \"south\": {{ $json.regionState.regionBounds.south }},\n          \"east\": {{ $json.regionState.regionBounds.east }},\n          \"west\": {{ $json.regionState.regionBounds.west }}\n      },\n      \"mapZoom\": 7,\n      \"usersSearchTerm\": \"{{ $('Search Like User').item.json.data.searchAssistanceResult.results[0].id }}\",\n      \"filterState\": {{ JSON.stringify($('Raw Text -> JSON').item.json.filterState) }},\n      \"isListVisible\": true,\n      \"listPriceActive\": true,\n      \"pagination\": {},\n      \"regionSelection\": [\n          {\n              \"regionId\": {{ $json.regionState.regionInfo[0].regionId }},\n              \"regionType\": {{ $json.regionState.regionInfo[0].regionType }}\n          }\n      ]\n  },\n  \"category\": \"cat1\",\n  \"wants\": {\n      \"cat1\": [\n          \"listResults\",\n          \"mapResults\"\n      ],\n      \"cat2\": [\n          \"total\"\n      ]\n  },\n  \"requestId\": {{ $json.requestId +1 }},\n  \"isDebugRequest\": false\n}",
+        "includeOtherFields": true,
+        "include": "selected",
+        "includeFields": "searchPageSeoObject.baseUrl",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3616,
+        704
+      ],
+      "id": "22648405-6eed-4f6f-ba55-26dc0a790e42",
+      "name": "Construct Request Body"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract the searchQueryState JSON from the previous node\nconst searchState = $input.first().json.searchQueryState;\n// Extract baseUrl\nconst baseURL = $input.first().json.baseUrl;\nconst trimmedURL = baseURL.replace(/^\\/|\\/$/g, '');\n\n// Convert to JSON string\nconst jsonStr = JSON.stringify(searchState);\n\n// URL-encode the JSON string\nconst encoded = encodeURIComponent(jsonStr);\n\n// Build final URL\nconst searchUrl = `https://www.zillow.com/${trimmedURL}/?searchQueryState=${encoded}`;\n\nreturn [{ search_url: searchUrl }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3856,
+        704
+      ],
+      "id": "6fa7a397-7983-4b78-a64c-24907036627d",
+      "name": "Construct Search URL"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "63566d2b-8465-484b-90a8-f888453dcfdb",
+              "leftValue": "={{ $('Find Homes').item.json.categoryTotals.cat1.totalResultCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4096,
+        704
+      ],
+      "id": "9d1c9aa8-2b70-4290-a539-a5af0318802d",
+      "name": "Is Area Empty?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "12f732a6-efe5-4cdd-9d29-854d35a62391",
+              "name": "empty_area",
+              "value": true,
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4416,
+        592
+      ],
+      "id": "5e6f59a8-335c-4943-a937-aab327300cdd",
+      "name": "Define 'empty' Field"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2144,
+        704
+      ],
+      "id": "c52be116-db25-4288-ba8a-67262ee65728",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM cookie_data ORDER BY RANDOM() LIMIT 1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1712,
+        832
+      ],
+      "id": "f4499716-882f-450b-872f-512f5642eaf8",
+      "name": "Fetch Random Session",
+      "credentials": {
+        "postgres": {
+          "id": "1ZvmPxsTeo2VQhqZ",
+          "name": "Neon - Zillow Cookies"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.zillow.com/zg-graph",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"query\": \"{{ $json.data.keywords }}\",\n  \"queryOptions\": \"\",\n  \"resultType\": [\n      \"REGIONS\",\n      \"FORSALE\",\n      \"RENTALS\",\n      \"SOLD\",\n      \"COMMUNITIES\",\n      \"SCHOOLS\",\n      \"SCHOOL_DISTRICTS\",\n      \"SEMANTIC_REGIONS\"\n  ],\n  \"shouldRequestSpellCorrectedMetadata\": \"true\",\n  \"querySource\": \"MANUAL\",\n  \"operationName\": \"GetQueryUnderstandingResults\"\n}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"accept\": \"*/*\",\n  \"accept-language\": \"en-US,en;q=0.9,ar;q=0.8\",\n  \"content-type\": \"application/json\",\n  \"origin\": \"https://www.zillow.com\",\n  \"priority\": \"u=1, i\",\n  \"sec-ch-ua\": \"\\\"Google Chrome\\\";v=\\\"141\\\", \\\"Not?A_Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"141\\\"\",\n  \"sec-ch-ua-mobile\": \"?0\",\n  \"sec-ch-ua-platform\": \"\\\"Windows\\\"\",\n  \"sec-fetch-dest\": \"empty\",\n  \"sec-fetch-mode\": \"cors\",\n  \"sec-fetch-site\": \"same-origin\",\n  \"user-agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\",\n  \"x-caller-id\": \"static-search-page-graphql\",\n  \"cookie\": \"{{ $json.cookie }}\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"operationName\": \"GetQueryUnderstandingResults\",\n  \"variables\": {\n      \"query\": \"{{ $json.data.keywords }}\",\n      \"queryOptions\": {\n          \"maxResults\": 2,\n          \"userSearchContext\": \"{{ $json.data.userSearchContext }}\",\n          \"spellCheck\": true,\n          \"viewPort\": {\n              \"minX\": 30.097710253011357,\n              \"maxX\": 36.55386528377938,\n              \"minY\": -93.7971512265625,\n              \"maxY\": -81.5693680234375\n          },\n          \"userLocation\": {\n              \"latitude\": 33.32578776839537,\n              \"longitude\": -87.683259625\n          }\n      },\n      \"resultType\": [\n          \"REGIONS\",\n          \"FORSALE\",\n          \"RENTALS\",\n          \"SOLD\",\n          \"COMMUNITIES\",\n          \"SCHOOLS\",\n          \"SCHOOL_DISTRICTS\",\n          \"SEMANTIC_REGIONS\"\n      ],\n      \"shouldRequestSpellCorrectedMetadata\": true,\n      \"querySource\": \"MANUAL\"\n  },\n  \"query\": \"query GetQueryUnderstandingResults($query: String!, $queryOptions: SearchAssistanceQueryOptions, $querySource: SearchAssistanceQuerySource = UNKNOWN, $resultType: [SearchAssistanceResultType], $shouldRequestSpellCorrectedMetadata: Boolean = false) {\\n  searchAssistanceResult: zgsQueryUnderstandingRequest(\\n    query: $query\\n    queryOptions: $queryOptions\\n    querySource: $querySource\\n    resultType: $resultType\\n  ) {\\n    requestId\\n    results {\\n      ...SearchAssistanceResultFields\\n      ...RegionResultFields\\n      ...SemanticResultFields\\n      ...RentalCommunityResultFields\\n      ...SchoolResultFields\\n      ...AddressResultFields\\n    }\\n  }\\n}\\n\\nfragment SearchAssistanceResultFields on SearchAssistanceResult {\\n  __typename\\n  id\\n  spellCorrectedMetadata @include(if: $shouldRequestSpellCorrectedMetadata) {\\n    ...SpellCorrectedFields\\n  }\\n}\\n\\nfragment SpellCorrectedFields on SpellCorrectedMetadata {\\n  isSpellCorrected\\n  spellCorrectedQuery\\n  userQuery\\n}\\n\\nfragment RegionResultFields on SearchAssistanceRegionResult {\\n  regionId\\n  subType\\n  state\\n  county\\n  city\\n}\\n\\nfragment SemanticResultFields on SearchAssistanceSemanticResult {\\n  nearMe\\n  regionIds\\n  regionTypes\\n  regionDisplayIds\\n  queryResolutionStatus\\n  schoolDistrictIds\\n  schoolIds\\n  viewLatitudeDelta\\n  filters {\\n    basementStatusType\\n    baths {\\n      min\\n      max\\n    }\\n    beds {\\n      min\\n      max\\n    }\\n    excludeTypes\\n    hoaFeesPerMonth {\\n      min\\n      max\\n    }\\n    homeType\\n    keywords\\n    listingStatusType\\n    livingAreaSqft {\\n      min\\n      max\\n    }\\n    lotSizeSqft {\\n      min\\n      max\\n    }\\n    parkingSpots {\\n      min\\n      max\\n    }\\n    price {\\n      min\\n      max\\n    }\\n    searchRentalFilters {\\n      monthlyPayment {\\n        min\\n        max\\n      }\\n      petsAllowed\\n      rentalAvailabilityDate {\\n        min\\n        max\\n      }\\n    }\\n    searchSaleFilters {\\n      daysOnZillow {\\n        min\\n        max\\n      }\\n    }\\n    showOnlyType\\n    view\\n    yearBuilt {\\n      min\\n      max\\n    }\\n  }\\n}\\n\\nfragment RentalCommunityResultFields on SearchAssistanceRentalCommunityResult {\\n  location {\\n    latitude\\n    longitude\\n  }\\n}\\n\\nfragment SchoolResultFields on SearchAssistanceSchoolResult {\\n  id\\n  schoolDistrictId\\n  schoolId\\n}\\n\\nfragment AddressResultFields on SearchAssistanceAddressResult {\\n  zpid\\n  addressSubType: subType\\n  location {\\n    latitude\\n    longitude\\n  }\\n}\\n\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2368,
+        704
+      ],
+      "id": "80be632e-f742-4cac-ab6c-43ae659c509f",
+      "name": "Search Like User"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"run_data\": {\n    \"run_id\": \"{{ $json.data.id }}\",\n    \"run_url\": \"https://console.apify.com/actors/runs/{{ $json.data.id }}#output\",\n    \"dataset_id\": \"{{ $json.data.defaultDatasetId }}\",\n    \"status\": \"{{ $json.data.status }}\"\n  },\n  \"ai_message\": \"{{ $('Asking for What?').item.json.message }}\"\n\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4416,
+        208
+      ],
+      "id": "12d4b359-84b3-4ea8-86c9-3e179baad392",
+      "name": "Run Data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/mido_99~zillow-scraper/runs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "apifyApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "memory",
+              "value": "512"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"concurrency\": 5,\n  \"max_retries\": 5,\n  \"max_items\": {{ $json.data.max_items }},\n  \"property_status\": \"{{ $json.data.property_status }}\",\n  \"proxyConfiguration\": {\n      \"useApifyProxy\": true,\n      \"apifyProxyGroups\": [\n          \"RESIDENTIAL\"\n      ]\n  },\n  \"search_url\": \"{{ $json.data.search_url }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4096,
+        208
+      ],
+      "id": "f3e511b7-afd9-45fd-8b7a-a620abca0ec3",
+      "name": "Start Apify Run",
+      "credentials": {
+        "apifyApi": {
+          "id": "CzWUmT3rD6Y6M0rL",
+          "name": "Zillow-Homes-Finder"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.zillow.com/zg-graph",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"query\": \"NC homes sold price 50k+ in last year\",\n  \"queryOptions\": \"\",\n  \"resultType\": [\n      \"REGIONS\",\n      \"FORSALE\",\n      \"RENTALS\",\n      \"SOLD\",\n      \"COMMUNITIES\",\n      \"SCHOOLS\",\n      \"SCHOOL_DISTRICTS\",\n      \"SEMANTIC_REGIONS\"\n  ],\n  \"shouldRequestSpellCorrectedMetadata\": \"true\",\n  \"querySource\": \"MANUAL\",\n  \"operationName\": \"GetQueryUnderstandingResults\"\n}",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"accept\": \"*/*\",\n  \"accept-language\": \"en-US,en;q=0.9,ar;q=0.8\",\n  \"content-type\": \"application/json\",\n  \"origin\": \"https://www.zillow.com\",\n  \"priority\": \"u=1, i\",\n  \"sec-ch-ua\": \"\\\"Google Chrome\\\";v=\\\"141\\\", \\\"Not?A_Brand\\\";v=\\\"8\\\", \\\"Chromium\\\";v=\\\"141\\\"\",\n  \"sec-ch-ua-mobile\": \"?0\",\n  \"sec-ch-ua-platform\": \"\\\"Windows\\\"\",\n  \"sec-fetch-dest\": \"empty\",\n  \"sec-fetch-mode\": \"cors\",\n  \"sec-fetch-site\": \"same-origin\",\n  \"user-agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\",\n  \"x-caller-id\": \"static-search-page-graphql\",\n  \"cookie\": \"AWSALB=Fs67reDIsUqyA1/6nmCODCEvtGqmnCE9ifrtSoGZAZv2PA926bnZdbBxqBdM8dILSogfES9Nh6ZpGkssUUgxFxeevKGRTPpNYIua9X2Z+Fn7sJkmaJy3vgqexRtq; AWSALBCORS=Fs67reDIsUqyA1/6nmCODCEvtGqmnCE9ifrtSoGZAZv2PA926bnZdbBxqBdM8dILSogfES9Nh6ZpGkssUUgxFxeevKGRTPpNYIua9X2Z+Fn7sJkmaJy3vgqexRtq; DoubleClickSession=True; JSESSIONID=49B832F009AD560FCB9A76BEAF2681A1; _ScCbts=%5B%5D; __eoi=ID=e41c4298e8a54e1c:T=1739032052:RT=1739032052:S=AA-AfjZVnz348hYA8hvD3RGQDR1a; __gads=ID=19fb88cde3654aec:T=1739032052:RT=1739032052:S=ALNI_Ma9yaw3WTSnf6kB1hFcQg-18_glDA; __gpi=UID=00000fdfc0ead522:T=1739032052:RT=1739032052:S=ALNI_MYSW9Cny0q3wFwKUfmtc_h3CK35iQ; _clck=1s9di37%7C2%7Cft9%7C0%7C1865; _clsk=hp3b78%7C1739032052374%7C3%7C0%7Cu.clarity.ms%2Fcollect; _dd_s=rum=0&expire=1739032945213; _fbp=fb.1.1739032007125.325070517797348671; _ga=GA1.2.44574948.1739032005; _gcl_au=1.1.95633094.1739032006; _gid=GA1.2.1404965388.1739032005; _pin_unauth=dWlkPU5qWmxaREF4WWpFdE0yWmxOaTAwTnpRekxXRXpObUl0WWpsak9UZGpNalJsTURBMg; _pxvid=7d4b789b-e639-11ef-9014-0f1313cf574c; _rdt_uuid=1739032006783.b5a23cf2-f445-4b59-9984-6980a4f3ea7b; _scid=Nyr1iK_peoJTUzzAxtoLf0E_sQSSiV1h; _scid_r=Nyr1iK_peoJTUzzAxtoLf0E_sQSSiV1h; _sctr=1%7C1738965600000; _tt_enable_cookie=1; _ttp=GsDnIIj7EtxE0vvOjeK7rTikzXF.tt.1; _uetsid=7dbf5710e63911efb166b54f9ef992fa; _uetvid=7dbf7c90e63911efab3e99bc2c6c249e; pxcts=7d4b8943-e639-11ef-9017-e314d4c72a7c; search=6|1741624053336%7Crect%3D40.9721538029029%2C-73.52924154687503%2C40.42241519179753%2C-74.43012045312503%26rid%3D6181%26disp%3Dmap%26mdm%3Dauto%26p%3D1%26listPriceActive%3D1%26fs%3D1%26fr%3D0%26mmm%3D0%26rs%3D0%26singlestory%3D0%26housing-connector%3D0%26parking-spots%3Dnull-%26abo%3D0%26garage%3D0%26pool%3D0%26ac%3D0%26waterfront%3D0%26finished%3D0%26unfinished%3D0%26cityview%3D0%26mountainview%3D0%26parkview%3D0%26waterview%3D0%26hoadata%3D1%26zillow-owned%3D0%263dhome%3D0%26showcase%3D0%26featuredMultiFamilyBuilding%3D0%26onlyRentalStudentHousingType%3D0%26onlyRentalIncomeRestrictedHousingType%3D0%26onlyRentalMilitaryHousingType%3D0%26onlyRentalDisabledHousingType%3D0%26onlyRentalSeniorHousingType%3D0%26commuteMode%3Ddriving%26commuteTimeOfDay%3Dnow%09%096181%09%7B%22isList%22%3Atrue%2C%22isMap%22%3Atrue%7D%09%09%09%09%09; tfpsi=ce1496ed-13ea-4944-a19f-3f2b54ba3259; web-platform-data=%7B%22wp-dd-rum-session%22%3A%7B%22doNotTrack%22%3Atrue%7D%7D; zg_anonymous_id=%22d6143877-d2f9-4134-bfd2-9b2d0472e64e%22; zgsession=1|8d2ff857-3d5d-40b6-8bab-72cf8ce03f30; zguid=24|%24fabb9eea-499b-40ec-b527-71e63453d00f; zjs_anonymous_id=%22fabb9eea-499b-40ec-b527-71e63453d00f%22\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"operationName\": \"GetQueryUnderstandingResults\",\n  \"variables\": {\n  \"query\": \"NC homes sold price 50k+ in last year\",\n      \"queryOptions\": {\n          \"maxResults\": 2,\n          \"userSearchContext\": \"SOLD\",\n          \"spellCheck\": true,\n          \"viewPort\": {\n              \"minX\": 30.097710253011357,\n              \"maxX\": 36.55386528377938,\n              \"minY\": -93.7971512265625,\n              \"maxY\": -81.5693680234375\n          },\n          \"userLocation\": {\n              \"latitude\": 33.32578776839537,\n              \"longitude\": -87.683259625\n          }\n      },\n      \"resultType\": [\n          \"REGIONS\",\n          \"FORSALE\",\n          \"RENTALS\",\n          \"SOLD\",\n          \"COMMUNITIES\",\n          \"SCHOOLS\",\n          \"SCHOOL_DISTRICTS\",\n          \"SEMANTIC_REGIONS\"\n      ],\n      \"shouldRequestSpellCorrectedMetadata\": true,\n      \"querySource\": \"MANUAL\"\n  },\n  \"query\": \"query GetQueryUnderstandingResults($query: String!, $queryOptions: SearchAssistanceQueryOptions, $querySource: SearchAssistanceQuerySource = UNKNOWN, $resultType: [SearchAssistanceResultType], $shouldRequestSpellCorrectedMetadata: Boolean = false) {\\n  searchAssistanceResult: zgsQueryUnderstandingRequest(\\n    query: $query\\n    queryOptions: $queryOptions\\n    querySource: $querySource\\n    resultType: $resultType\\n  ) {\\n    requestId\\n    results {\\n      ...SearchAssistanceResultFields\\n      ...RegionResultFields\\n      ...SemanticResultFields\\n      ...RentalCommunityResultFields\\n      ...SchoolResultFields\\n      ...AddressResultFields\\n    }\\n  }\\n}\\n\\nfragment SearchAssistanceResultFields on SearchAssistanceResult {\\n  __typename\\n  id\\n  spellCorrectedMetadata @include(if: $shouldRequestSpellCorrectedMetadata) {\\n    ...SpellCorrectedFields\\n  }\\n}\\n\\nfragment SpellCorrectedFields on SpellCorrectedMetadata {\\n  isSpellCorrected\\n  spellCorrectedQuery\\n  userQuery\\n}\\n\\nfragment RegionResultFields on SearchAssistanceRegionResult {\\n  regionId\\n  subType\\n  state\\n  county\\n  city\\n}\\n\\nfragment SemanticResultFields on SearchAssistanceSemanticResult {\\n  nearMe\\n  regionIds\\n  regionTypes\\n  regionDisplayIds\\n  queryResolutionStatus\\n  schoolDistrictIds\\n  schoolIds\\n  viewLatitudeDelta\\n  filters {\\n    basementStatusType\\n    baths {\\n      min\\n      max\\n    }\\n    beds {\\n      min\\n      max\\n    }\\n    excludeTypes\\n    hoaFeesPerMonth {\\n      min\\n      max\\n    }\\n    homeType\\n    keywords\\n    listingStatusType\\n    livingAreaSqft {\\n      min\\n      max\\n    }\\n    lotSizeSqft {\\n      min\\n      max\\n    }\\n    parkingSpots {\\n      min\\n      max\\n    }\\n    price {\\n      min\\n      max\\n    }\\n    searchRentalFilters {\\n      monthlyPayment {\\n        min\\n        max\\n      }\\n      petsAllowed\\n      rentalAvailabilityDate {\\n        min\\n        max\\n      }\\n    }\\n    searchSaleFilters {\\n      daysOnZillow {\\n        min\\n        max\\n      }\\n    }\\n    showOnlyType\\n    view\\n    yearBuilt {\\n      min\\n      max\\n    }\\n  }\\n}\\n\\nfragment RentalCommunityResultFields on SearchAssistanceRentalCommunityResult {\\n  location {\\n    latitude\\n    longitude\\n  }\\n}\\n\\nfragment SchoolResultFields on SearchAssistanceSchoolResult {\\n  id\\n  schoolDistrictId\\n  schoolId\\n}\\n\\nfragment AddressResultFields on SearchAssistanceAddressResult {\\n  zpid\\n  addressSubType: subType\\n  location {\\n    latitude\\n    longitude\\n  }\\n}\\n\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2176,
+        928
+      ],
+      "id": "301f9890-7e3a-4b5a-984d-5a8cd7f13f8f",
+      "name": "Search Like User1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        928
+      ],
+      "id": "d67b9219-8c49-420b-b463-3bcbc968f579",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a8bd6b72-3d3a-4b70-9be6-e8dddcce1e7b",
+              "name": "data.max_items",
+              "value": "={{ min($json.data.max_items, 50) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3856,
+        208
+      ],
+      "id": "bc722bf1-a444-4c23-9d1d-41793877dde2",
+      "name": "Limit Results"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Locate Map Bounds": {
+      "main": [
+        [
+          {
+            "node": "Find Homes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Homes": {
+      "main": [
+        [
+          {
+            "node": "Construct Request Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Cookie": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Raw Text -> JSON": {
+      "main": [
+        [
+          {
+            "node": "Locate Map Bounds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split List Results": {
+      "main": [
+        [
+          {
+            "node": "Verify Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Message": {
+      "main": [
+        [
+          {
+            "node": "Chatbot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Error": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filters Constructor": {
+      "main": [
+        [
+          {
+            "node": "Raw Text -> JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chatbot",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Chatbot",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chatbot": {
+      "main": [
+        [
+          {
+            "node": "Normalize AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize AI Response": {
+      "main": [
+        [
+          {
+            "node": "Asking for What?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asking for What?": {
+      "main": [
+        [
+          {
+            "node": "Limit Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Random Session",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construct Request Body": {
+      "main": [
+        [
+          {
+            "node": "Construct Search URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construct Search URL": {
+      "main": [
+        [
+          {
+            "node": "Is Area Empty?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Area Empty?": {
+      "main": [
+        [
+          {
+            "node": "Define 'empty' Field",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Define 'empty' Field": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Search Like User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Random Session": {
+      "main": [
+        [
+          {
+            "node": "Parse Cookie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Like User": {
+      "main": [
+        [
+          {
+            "node": "Filters Constructor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Run Data": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Apify Run": {
+      "main": [
+        [
+          {
+            "node": "Run Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search Like User1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit Results": {
+      "main": [
+        [
+          {
+            "node": "Start Apify Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f44ac2df-f5f5-4efe-b421-40336c59d031",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a5f908741ae8d3a40d6024f6d5973bbde6f528e9344c887836ffd50f7aeca584"
+  },
+  "id": "xi7e6nlln4pDsAtq",
+  "tags": []
+}
