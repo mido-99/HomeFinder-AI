@@ -19,6 +19,9 @@ Tired of endless clicks and confusing search filters? HomeFinder AI uses cutting
     * Key property distribution analysis (beds, baths, price ranges).
     * Nicely formatted, easy-to-read property listings.
 
+![HomePage](https://i.ibb.co/84gHX9fW/Screenshot-2025-11-20-203522.png)
+*Homepage*
+
 ---
 
 ## 🧠 How It Works (More Technical)
@@ -53,21 +56,27 @@ The application leverages a modern, multi-tool backend for orchestration and del
 
 ## 💬 Use Example
 
-![HomePage](https://i.ibb.co/84gHX9fW/Screenshot-2025-11-20-203522.png)
-*Homepage*
-
 ![Chat](https://i.ibb.co/r28V74b2/Screenshot-2025-11-20-223059.png)
 *You may chat in human language of course :) I just used this for the example*
+
+---
 
 ![Prices Buckets](https://i.ibb.co/W4C7pzj6/Screenshot-2025-11-20-223303.png)
 *Prices Buckets*
 
+---
+
 ![Best Deals](https://i.ibb.co/LhhzTQMD/Screenshot-2025-11-20-223323.png)
 *Best Deals*
 
-![Cheapest & Most expensive Homes](https://i.ibb.co/CKKPpSmG/Screenshot-2025-11-20-223343.png)
+---
+
+![Cheapest & Most expensive Homes](https://i.ibb.co/wkFhP45/Screenshot-2025-11-20-223343.png)
 *Cheapest & Most expensive Homes*
 
+---
+
+*Cheapest & Most expensive Homes*
 ![Beds & Baths Distribution](https://i.ibb.co/7tFhsL4y/Screenshot-2025-11-20-223359.png)
 *Beds & Baths Distribution*
 
